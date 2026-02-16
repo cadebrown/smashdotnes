@@ -79,6 +79,31 @@ install_cc65() {
   rm -rf "$tmp"
 }
 
+configure_cc65_env() {
+  if [[ -n "${CC65_HOME:-}" ]]; then
+    return
+  fi
+
+  if ! command -v cl65 >/dev/null 2>&1; then
+    return
+  fi
+
+  local target_path
+  target_path="$(cl65 --print-target-path 2>/dev/null || true)"
+  if [[ -z "$target_path" ]]; then
+    return
+  fi
+
+  local cc65_home
+  cc65_home="$(dirname "$target_path")"
+  if [[ ! -d "$cc65_home/include" ]]; then
+    return
+  fi
+
+  export CC65_HOME="$cc65_home"
+  echo "[cf-build] Using CC65_HOME=$CC65_HOME"
+}
+
 install_dx() {
   local install=0
 
@@ -104,6 +129,7 @@ main() {
 
   rustup target add wasm32-unknown-unknown
   install_cc65
+  configure_cc65_env
   install_dx
 
   echo "[cf-build] Building SmashDotNES site artifact"
