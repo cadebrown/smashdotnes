@@ -8,7 +8,7 @@ use anyhow::{bail, Context, Result};
 use clap::{Args, Parser, Subcommand};
 use nessy::emulator::{run_headless, EmulatorBackend, HeadlessOutcome, HeadlessRun};
 use nessy::ines::inspect_rom;
-use nessy::pipeline::{generate_character, generate_roster};
+use nessy::pipeline::{generate_character, generate_roster, sync_runtime_static_includes};
 use pulldown_cmark::{html, Options, Parser as MarkdownParser};
 use serde::Serialize;
 use walkdir::WalkDir;
@@ -288,6 +288,8 @@ fn run_rom(root: &Path, cmd: RomSubcommand) -> Result<()> {
             labels,
             skip_generate,
         } => {
+            sync_runtime_static_includes(root)?;
+
             if !skip_generate {
                 let generated = generate_roster(&root.join(spec_dir), root)?;
                 println!(

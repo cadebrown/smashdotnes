@@ -2,7 +2,7 @@ ROOT := $(abspath .)
 CLI := cargo run --package nessy --
 EMULATOR ?= mame
 
-.PHONY: help doctor generate build inspect run smoke test-emu test-web test fmt web-sync web-dev clean
+.PHONY: help doctor generate build inspect run smoke test-emu test-web test fmt web-sync web-dev ci-pages clean
 
 help:
 	@echo "Targets:"
@@ -18,6 +18,7 @@ help:
 	@echo "  make fmt        # format rust sources"
 	@echo "  make web-sync   # copy ROM/docs/screens into web/public"
 	@echo "  make web-dev    # run Dioxus dev server"
+	@echo "  make ci-pages   # mirror GitHub Pages build and stage ./site artifact"
 	@echo "  make clean      # remove generated outputs"
 
 doctor:
@@ -65,6 +66,12 @@ web-sync: build
 
 web-dev: web-sync
 	dx serve --platform web --package smash-web
+
+ci-pages: web-sync
+	dx build --platform web --package smash-web
+	rm -rf site
+	mkdir -p site
+	cp -R target/dx/smash-web/debug/web/public/. site/
 
 clean:
 	rm -rf out web/public/rom/smash.nes web/public/snaps web/public/docs web/public/info/build.json src/generated src/chars/*/generated cfg nvram

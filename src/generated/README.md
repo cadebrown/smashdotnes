@@ -6,6 +6,7 @@ Ownership:
 - produced by `nessy` pipeline (`make generate`)
 - read by `src/main.c` and `src/chr.s`
 - not intended for manual edits
+- static include payloads are synced from `nessy/assets/generated_static/`
 
 Typical files:
 - `roster_chr.inc`

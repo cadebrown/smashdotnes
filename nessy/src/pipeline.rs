@@ -10,6 +10,57 @@ use crate::chr::{image_region_to_chr, ChrOptions, ChrRegion, BYTES_PER_TILE};
 use crate::spec::{discover_specs, load_character_spec, CharacterSpec};
 use crate::state_graph::{compile_state_graph, write_state_include};
 
+const STATIC_RUNTIME_GENERATED_ASSETS: &[(&str, &str)] = &[
+    (
+        "src/generated/title_logo.h",
+        include_str!("../assets/generated_static/title_logo.h"),
+    ),
+    (
+        "src/generated/title_tiles.inc",
+        include_str!("../assets/generated_static/title_tiles.inc"),
+    ),
+    (
+        "src/generated/mario_smb1_tiles.inc",
+        include_str!("../assets/generated_static/mario_smb1_tiles.inc"),
+    ),
+    (
+        "src/generated/simon_cv1_tiles.inc",
+        include_str!("../assets/generated_static/simon_cv1_tiles.inc"),
+    ),
+    (
+        "src/generated/tommy_kf_tiles.inc",
+        include_str!("../assets/generated_static/tommy_kf_tiles.inc"),
+    ),
+    (
+        "src/generated/rizer_contra_tiles.inc",
+        include_str!("../assets/generated_static/rizer_contra_tiles.inc"),
+    ),
+    (
+        "src/generated/tommy_kick_ext_tiles.inc",
+        include_str!("../assets/generated_static/tommy_kick_ext_tiles.inc"),
+    ),
+    (
+        "src/generated/rizer_jump_spin_tiles.inc",
+        include_str!("../assets/generated_static/rizer_jump_spin_tiles.inc"),
+    ),
+    (
+        "src/generated/smb1_fireball_tiles.inc",
+        include_str!("../assets/generated_static/smb1_fireball_tiles.inc"),
+    ),
+    (
+        "src/generated/cv1_axe_tiles.inc",
+        include_str!("../assets/generated_static/cv1_axe_tiles.inc"),
+    ),
+    (
+        "src/generated/simon_whip_tiles.inc",
+        include_str!("../assets/generated_static/simon_whip_tiles.inc"),
+    ),
+    (
+        "src/generated/rizer_bullet_tile.inc",
+        include_str!("../assets/generated_static/rizer_bullet_tile.inc"),
+    ),
+];
+
 #[derive(Debug, Clone, Serialize)]
 pub struct CharacterGenerationResult {
     pub id: String,
@@ -69,17 +120,30 @@ struct CharacterArtifacts {
     chr_bytes: Vec<u8>,
 }
 
+/// Syncs static generated includes required by the runtime into `src/generated/`.
+///
+/// These assets are versioned with the tooling crate so clean CI checkouts can
+/// build the ROM without relying on local untracked generated files.
+pub fn sync_runtime_static_includes(workspace_root: &Path) -> Result<()> {
+    for (relative_path, contents) in STATIC_RUNTIME_GENERATED_ASSETS {
+        write_text_if_changed(&workspace_root.join(relative_path), contents)?;
+    }
+    Ok(())
+}
+
 /// Generates all outputs for a single fighter spec.
 pub fn generate_character(
     spec_path: &Path,
     workspace_root: &Path,
 ) -> Result<CharacterGenerationResult> {
+    sync_runtime_static_includes(workspace_root)?;
     let artifacts = generate_character_internal(spec_path, workspace_root)?;
     Ok(artifacts.result)
 }
 
 /// Generates all fighters in `spec_dir` and writes roster-level outputs.
 pub fn generate_roster(spec_dir: &Path, workspace_root: &Path) -> Result<RosterGenerationResult> {
+    sync_runtime_static_includes(workspace_root)?;
     let spec_paths = discover_specs(spec_dir)?;
     let mut artifacts = Vec::with_capacity(spec_paths.len());
     for spec_path in spec_paths {
@@ -328,4 +392,22 @@ fn to_relative_string(root: &Path, path: &Path) -> String {
     path.strip_prefix(root)
         .map(|value| value.to_string_lossy().to_string())
         .unwrap_or_else(|_| path.to_string_lossy().to_string())
+}
+
+fn write_text_if_changed(path: &Path, contents: &str) -> Result<()> {
+    if let Some(parent) = path.parent() {
+        fs::create_dir_all(parent)
+            .with_context(|| format!("failed to create {}", parent.display()))?;
+    }
+
+    let should_write = match fs::read_to_string(path) {
+        Ok(existing) => existing != contents,
+        Err(_) => true,
+    };
+
+    if should_write {
+        fs::write(path, contents).with_context(|| format!("failed to write {}", path.display()))?;
+    }
+
+    Ok(())
 }

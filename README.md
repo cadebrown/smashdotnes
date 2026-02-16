@@ -83,6 +83,7 @@ This performs generation, ROM build + inspect, Rust tests, emulator suite, and w
 - `make test`: run workspace tests, emulator suite, and web suite
 - `make web-sync`: sync ROM/docs/screenshots to `web/public`
 - `make web-dev`: sync and launch Dioxus web dev server
+- `make ci-pages`: mirror the Pages workflow and stage deployable static output in `site/`
 - `make clean`: remove generated artifacts and output directories
 
 ## Web Routes and Controls
@@ -152,6 +153,16 @@ The web app serves documentation from `/docs` (plus generated per-doc HTML pages
 2. `make web-sync`
 3. Review outputs in `out/reports/emulator/summary.json` and `out/reports/web/summary.json`
 4. Verify `out/smash.nes` and publish assets from `target/dx/smash-web/.../public`
+
+## Test GitHub Pages Locally
+
+Run the same core steps as the workflow:
+
+```bash
+make ci-pages
+```
+
+This produces a local Pages-style artifact in `site/`.
 
 ## GitHub Actions Deploy
 
