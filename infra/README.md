@@ -73,6 +73,7 @@ Do not commit (already ignored in `infra/.gitignore`):
 
 * No GitHub Actions deployment workflow is required.
 * Cloudflare Pages runs `bash infra/cloudflare/build.sh` for deploys.
+* `build.sh` defaults to cc65 tag `V2.19`; override with env var `CC65_TAG` if needed.
 
 ## References
 
