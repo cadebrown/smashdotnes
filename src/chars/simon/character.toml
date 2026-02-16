@@ -1,0 +1,54 @@
+[character]
+id = "simon"
+display_name = "Simon Belmont"
+franchise = "Castlevania"
+
+[spritesheet]
+path = "sheet.png"
+frame_width = 16
+frame_height = 32
+
+[[spritesheet.frames]]
+name = "idle"
+x = 0
+y = 0
+w = 16
+h = 32
+
+[[spritesheet.frames]]
+name = "walk"
+x = 16
+y = 0
+w = 16
+h = 32
+
+[[animations]]
+name = "idle"
+frames = ["idle"]
+frame_duration = 8
+looping = true
+
+[[animations]]
+name = "walk"
+frames = ["idle", "walk"]
+frame_duration = 6
+looping = true
+
+[state_graph]
+initial = "idle"
+
+[[state_graph.states]]
+name = "idle"
+animation = "idle"
+
+[[state_graph.states.transitions]]
+on = "move"
+to = "walk"
+
+[[state_graph.states]]
+name = "walk"
+animation = "walk"
+
+[[state_graph.states.transitions]]
+on = "stop"
+to = "idle"

@@ -1,0 +1,47 @@
+[character]
+id = "tommy"
+display_name = "Tommy"
+franchise = "Kung Fu"
+
+[spritesheet]
+path = "sheet.png"
+frame_width = 16
+frame_height = 32
+
+[[spritesheet.frames]]
+name = "idle"
+x = 0
+y = 0
+w = 16
+h = 32
+
+[[animations]]
+name = "idle"
+frames = ["idle"]
+frame_duration = 8
+looping = true
+
+[[animations]]
+name = "special"
+frames = ["idle"]
+frame_duration = 8
+looping = false
+
+[state_graph]
+initial = "idle"
+
+[[state_graph.states]]
+name = "idle"
+animation = "idle"
+
+[[state_graph.states.transitions]]
+on = "special"
+to = "special"
+
+[[state_graph.states]]
+name = "special"
+animation = "special"
+
+[[state_graph.states.transitions]]
+on = "idle"
+to = "idle"

@@ -1,0 +1,51 @@
+[character]
+id = "mario"
+display_name = "Mario"
+franchise = "Super Mario Bros"
+
+[spritesheet]
+path = "sheet.png"
+frame_width = 16
+frame_height = 32
+
+[[spritesheet.frames]]
+name = "idle"
+x = 0
+y = 0
+w = 16
+h = 32
+
+[[animations]]
+name = "idle"
+frames = ["idle"]
+frame_duration = 8
+looping = true
+
+[[animations]]
+name = "jab"
+frames = ["idle"]
+frame_duration = 6
+looping = false
+
+[state_graph]
+initial = "idle"
+
+[[state_graph.states]]
+name = "idle"
+animation = "idle"
+cancel_start = 0
+cancel_end = 7
+
+[[state_graph.states.transitions]]
+on = "jab"
+to = "jab"
+
+[[state_graph.states]]
+name = "jab"
+animation = "jab"
+cancel_start = 3
+cancel_end = 5
+
+[[state_graph.states.transitions]]
+on = "idle"
+to = "idle"

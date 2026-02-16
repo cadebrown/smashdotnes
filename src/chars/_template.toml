@@ -1,0 +1,32 @@
+# Copy this file to src/chars/<id>/character.toml and update fields.
+
+[character]
+id = "character_id"
+display_name = "Display Name"
+franchise = "Game Series"
+
+[spritesheet]
+# Path can be relative to this TOML file or the workspace root.
+path = "sheet.png"
+frame_width = 16
+frame_height = 32
+
+[[spritesheet.frames]]
+name = "idle"
+x = 0
+y = 0
+w = 16
+h = 32
+
+[[animations]]
+name = "idle"
+frames = ["idle"]
+frame_duration = 8
+looping = true
+
+[state_graph]
+initial = "idle"
+
+[[state_graph.states]]
+name = "idle"
+animation = "idle"

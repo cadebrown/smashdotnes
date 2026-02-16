@@ -1,0 +1,47 @@
+[character]
+id = "rizer"
+display_name = "Rizer"
+franchise = "Contra"
+
+[spritesheet]
+path = "sheet.png"
+frame_width = 16
+frame_height = 32
+
+[[spritesheet.frames]]
+name = "idle"
+x = 0
+y = 0
+w = 16
+h = 32
+
+[[animations]]
+name = "idle"
+frames = ["idle"]
+frame_duration = 8
+looping = true
+
+[[animations]]
+name = "shoot"
+frames = ["idle"]
+frame_duration = 6
+looping = false
+
+[state_graph]
+initial = "idle"
+
+[[state_graph.states]]
+name = "idle"
+animation = "idle"
+
+[[state_graph.states.transitions]]
+on = "shoot"
+to = "shoot"
+
+[[state_graph.states]]
+name = "shoot"
+animation = "shoot"
+
+[[state_graph.states.transitions]]
+on = "idle"
+to = "idle"
