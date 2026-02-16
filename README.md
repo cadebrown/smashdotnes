@@ -7,6 +7,7 @@ The repository is organized for deterministic, headless development:
 - reusable Rust tooling and CLI in `nessy/`
 - a Rust + Dioxus web surface in `web/`
 - publish-facing technical docs in `docs/`
+- Cloudflare deployment infrastructure in `infra/`
 
 ## Highlights
 
@@ -39,6 +40,7 @@ The repository is organized for deterministic, headless development:
 |  |- src/
 |  `- public/
 |- docs/
+|- infra/
 |- Makefile
 `- Cargo.toml
 ```
@@ -83,7 +85,7 @@ This performs generation, ROM build + inspect, Rust tests, emulator suite, and w
 - `make test`: run workspace tests, emulator suite, and web suite
 - `make web-sync`: sync ROM/docs/screenshots to `web/public`
 - `make web-dev`: sync and launch Dioxus web dev server
-- `make ci-pages`: mirror the Pages workflow and stage deployable static output in `site/`
+- `make ci-pages`: stage deployable static output in `site/` (used by Cloudflare build)
 - `make clean`: remove generated artifacts and output directories
 
 ## Web Routes and Controls
@@ -154,30 +156,37 @@ The web app serves documentation from `/docs` (plus generated per-doc HTML pages
 3. Review outputs in `out/reports/emulator/summary.json` and `out/reports/web/summary.json`
 4. Verify `out/smash.nes` and publish assets from `target/dx/smash-web/.../public`
 
-## Test GitHub Pages Locally
+## Test Cloudflare Build Locally
 
-Run the same core steps as the workflow:
+Run the same core artifact build used by Cloudflare Pages:
 
 ```bash
 make ci-pages
 ```
 
-This produces a local Pages-style artifact in `site/`.
+This produces the publish artifact in `site/`.
 
-## GitHub Actions Deploy
+## Cloudflare Deploy
 
-An automated build + deploy workflow is configured at:
+Cloudflare Pages infrastructure is managed with OpenTofu:
 
-- `.github/workflows/pages.yml`
+- `infra/cloudflare/main.tf`
+- `infra/cloudflare/build.sh`
 
-Behavior:
+Provision/update:
 
-- Pull requests: build-only validation (no deploy)
-- `main` pushes + manual dispatch: build and deploy to GitHub Pages
+```bash
+cd infra/cloudflare
+cp terraform.tfvars.example terraform.tfvars
+export CLOUDFLARE_API_TOKEN="..."
+tofu init
+tofu plan
+tofu apply
+```
 
-Repository setting required:
+After provisioning, Cloudflare Pages deploys directly from GitHub using the configured build command.
 
-- In GitHub `Settings -> Pages`, set `Source` to `GitHub Actions`
+No GitHub Actions deployment workflow is required.
 
 ## License
 

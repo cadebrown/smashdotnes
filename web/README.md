@@ -28,6 +28,12 @@ Compatibility note:
 dx build --platform web --package smash-web
 ```
 
+For Cloudflare Pages artifact staging from repo root:
+
+```bash
+make ci-pages
+```
+
 ## Automation
 
 Use the root target:

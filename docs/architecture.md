@@ -32,6 +32,10 @@ can be added without touching core tool code.
 - static hosting output
 - clean public routes (`/`, `/play`, `/docs`, `/info`)
 
+`infra/` is the deployment boundary:
+- OpenTofu config for Cloudflare Pages project/domain
+- build command contract used by Pages (`infra/cloudflare/build.sh`)
+
 ## 3. Build Flow
 
 The build path is intentionally short and explicit:

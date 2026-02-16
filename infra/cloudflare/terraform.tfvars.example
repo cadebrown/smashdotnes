@@ -1,0 +1,7 @@
+account_id   = "YOUR_CLOUDFLARE_ACCOUNT_ID"
+github_owner = "YOUR_GITHUB_USER_OR_ORG"
+# github_repo          = "smashdotnes"
+# pages_project_name   = "smashdotnes"
+# pages_production_branch = "main"
+# zone_name            = "cade.io"
+# pages_custom_domain  = "smash.cade.io"

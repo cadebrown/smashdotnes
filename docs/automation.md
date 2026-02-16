@@ -41,7 +41,7 @@ Outputs:
 - `out/reports/web/screens/*.png`
 - `out/reports/web/http_server.log`
 
-For local Pages parity, run `make ci-pages` to build and stage a deployable static site in `site/`.
+For local Cloudflare parity, run `make ci-pages` to build and stage the deployable site in `site/`.
 
 ## 4. Fast Failure Debugging
 
