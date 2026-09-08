@@ -1,0 +1,5 @@
+[default.extend-identifiers]
+ines = "ines"
+
+[files]
+extend-exclude = ["web/public/assets/emulatorjs"]

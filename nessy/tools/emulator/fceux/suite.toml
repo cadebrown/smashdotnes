@@ -1,0 +1,7 @@
+backend = "fceux"
+
+[[case]]
+id = "boot_smoke"
+script = "boot_smoke.lua"
+timeout_seconds = 20
+description = "Boots the ROM in FCEUX and verifies the runtime signature and advancing frame counter."

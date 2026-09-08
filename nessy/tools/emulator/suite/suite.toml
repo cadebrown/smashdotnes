@@ -1,0 +1,79 @@
+backend = "mame"
+
+[[case]]
+id = "boot_smoke"
+script = "boot_smoke.lua"
+timeout_seconds = 20
+description = "Boots the ROM, validates the exported signature and scene, then exits cleanly."
+
+[[case]]
+id = "frame_progress"
+script = "frame_progress.lua"
+timeout_seconds = 20
+description = "Verifies that the exported frame counter continues to increase."
+
+[[case]]
+id = "input_right"
+script = "input_right.lua"
+timeout_seconds = 20
+description = "Injects Right and verifies that the exported player position increases."
+
+[[case]]
+id = "audio_smoke"
+script = "audio_smoke.lua"
+timeout_seconds = 20
+description = "Verifies scene music, all four APU voices, and a gameplay cue."
+
+[[case]]
+id = "battle_cadence"
+script = "battle_cadence.lua"
+timeout_seconds = 30
+description = "Requires gameplay and music to remain locked to the 60 Hz video clock during battle."
+
+[[case]]
+id = "combat_presentation"
+script = "combat_presentation.lua"
+timeout_seconds = 20
+description = "Drives a real hit and verifies synchronized damage, spark, cue, and recovery."
+
+[[case]]
+id = "animation_states"
+script = "animation_states.lua"
+timeout_seconds = 75
+description = "Drives every fighter through every authored idle, walk, jump, jab, and special pose."
+
+[[case]]
+id = "tas_mario"
+script = "tas_mario.lua"
+timeout_seconds = 60
+description = "Runs Mario's deterministic full-state TAS, validates the jump arc, and captures sixteen DMA-aligned screenshots."
+
+[[case]]
+id = "tas_simon"
+script = "tas_simon.lua"
+timeout_seconds = 60
+description = "Runs Simon's deterministic full-state TAS, validates the jump arc, and captures sixteen DMA-aligned screenshots."
+
+[[case]]
+id = "tas_tommy"
+script = "tas_tommy.lua"
+timeout_seconds = 60
+description = "Runs Tommy's deterministic full-state TAS, validates the jump arc, and captures sixteen DMA-aligned screenshots."
+
+[[case]]
+id = "tas_rizer"
+script = "tas_rizer.lua"
+timeout_seconds = 60
+description = "Runs Rizer's deterministic full-state TAS, validates all four tumble poses and the jump arc, and captures seventeen DMA-aligned screenshots."
+
+[[case]]
+id = "rizer_aerial_fire"
+script = "rizer_aerial_fire.lua"
+timeout_seconds = 30
+description = "Proves Rizer keeps the original four-pose curl while an aerial bullet is active."
+
+[[case]]
+id = "long_stability"
+script = "long_stability.lua"
+timeout_seconds = 35
+description = "Runs a longer session and checks that the runtime remains responsive."

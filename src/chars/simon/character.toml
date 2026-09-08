@@ -1,38 +1,120 @@
 [character]
 id = "simon"
 display_name = "Simon Belmont"
+runtime_slot = 1
 franchise = "Castlevania"
 
 [spritesheet]
 path = "sheet.png"
-frame_width = 16
-frame_height = 32
+frame_width = 32
+frame_height = 40
 
 [[spritesheet.frames]]
 name = "idle"
 x = 0
 y = 0
-w = 16
-h = 32
 
 [[spritesheet.frames]]
-name = "walk"
-x = 16
+name = "walk_a"
+x = 32
 y = 0
-w = 16
-h = 32
+
+[[spritesheet.frames]]
+name = "walk_b"
+x = 64
+y = 0
+
+[[spritesheet.frames]]
+name = "walk_c"
+x = 96
+y = 0
+
+[[spritesheet.frames]]
+name = "jump_rise"
+x = 128
+y = 0
+
+[[spritesheet.frames]]
+name = "jump_apex"
+x = 160
+y = 0
+
+[[spritesheet.frames]]
+name = "jump_fall"
+x = 192
+y = 0
+
+[[spritesheet.frames]]
+name = "jab_start"
+x = 224
+y = 0
+
+[[spritesheet.frames]]
+name = "jab_active"
+x = 256
+y = 0
+
+[[spritesheet.frames]]
+name = "jab_recover"
+x = 288
+y = 0
+
+[[spritesheet.frames]]
+name = "special_start"
+x = 320
+y = 0
+
+[[spritesheet.frames]]
+name = "special_active"
+x = 352
+y = 0
+
+[[spritesheet.frames]]
+name = "special_recover"
+x = 384
+y = 0
+
+[[spritesheet.frames]]
+name = "hurt"
+x = 416
+y = 0
 
 [[animations]]
 name = "idle"
 frames = ["idle"]
-frame_duration = 8
+frame_duration = 12
 looping = true
 
 [[animations]]
 name = "walk"
-frames = ["idle", "walk"]
-frame_duration = 6
+frames = ["walk_a", "walk_b", "walk_c", "walk_b"]
+frame_duration = 5
 looping = true
+
+[[animations]]
+name = "jump"
+frames = ["jump_rise", "jump_apex", "jump_fall", "jump_apex"]
+frame_duration = 4
+minimum_distinct_frames = 1
+looping = false
+
+[[animations]]
+name = "jab"
+frames = ["jab_start", "jab_active", "jab_recover"]
+frame_duration = 5
+looping = false
+
+[[animations]]
+name = "special"
+frames = ["special_start", "special_active", "special_recover"]
+frame_duration = 5
+looping = false
+
+[[animations]]
+name = "hurt"
+frames = ["hurt"]
+frame_duration = 10
+looping = false
 
 [state_graph]
 initial = "idle"
@@ -41,14 +123,28 @@ initial = "idle"
 name = "idle"
 animation = "idle"
 
-[[state_graph.states.transitions]]
-on = "move"
-to = "walk"
-
 [[state_graph.states]]
 name = "walk"
 animation = "walk"
 
-[[state_graph.states.transitions]]
-on = "stop"
-to = "idle"
+[[state_graph.states]]
+name = "jump"
+animation = "jump"
+
+[[state_graph.states]]
+name = "jab"
+animation = "jab"
+cancel_start = 6
+cancel_end = 8
+active_start = 5
+active_end = 9
+
+[[state_graph.states]]
+name = "special"
+animation = "special"
+active_start = 5
+active_end = 9
+
+[[state_graph.states]]
+name = "hurt"
+animation = "hurt"

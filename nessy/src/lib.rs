@@ -5,12 +5,15 @@
 //! - tests
 //! - external automation wrappers
 
+pub mod audio;
 pub mod chr;
 pub mod emulator;
 pub mod ines;
+pub mod music;
 pub mod pipeline;
 pub mod spec;
 pub mod state_graph;
+pub mod visual;
 
 pub use pipeline::{
     generate_character, generate_roster, sync_runtime_static_includes, CharacterGenerationResult,

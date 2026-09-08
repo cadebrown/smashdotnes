@@ -6,7 +6,6 @@ export PATH="$HOME/.cargo/bin:$HOME/.local/bin:$PATH"
 export CARGO_HOME="${CARGO_HOME:-$HOME/.cargo}"
 export RUSTUP_HOME="${RUSTUP_HOME:-$HOME/.rustup}"
 
-DX_VERSION="${DX_VERSION:-0.7.2}"
 CC65_TAG="${CC65_TAG:-V2.19}"
 
 install_rust_toolchain() {
@@ -73,14 +72,33 @@ install_cc65() {
     exit 1
   fi
 
-  make -C "$src_root" -j"$(getconf _NPROCESSORS_ONLN || echo 2)"
-  make -C "$src_root" PREFIX="$HOME/.local" install
+  local jobs
+  jobs="$(getconf _NPROCESSORS_ONLN 2>/dev/null || echo 2)"
+  make -C "$src_root" -j"$jobs" bin QUIET=1
+  make -C "$src_root" -j"$jobs" nes QUIET=1
+
+  make -C "$src_root/src" PREFIX="$HOME/.local" install
+
+  local data_root="$HOME/.local/share/cc65"
+  install -d "$data_root/asminc" "$data_root/cfg" "$data_root/include" "$data_root/lib"
+  cp -R "$src_root/asminc/." "$data_root/asminc/"
+  cp -R "$src_root/cfg/." "$data_root/cfg/"
+  cp -R "$src_root/include/." "$data_root/include/"
+  install -m0644 "$src_root/lib/nes.lib" "$data_root/lib/nes.lib"
+  export CC65_HOME="$data_root"
 
   rm -rf "$tmp"
 }
 
 configure_cc65_env() {
   if [[ -n "${CC65_HOME:-}" ]]; then
+    return
+  fi
+
+  local installed_home="$HOME/.local/share/cc65"
+  if [[ -d "$installed_home/include" && -f "$installed_home/lib/nes.lib" ]]; then
+    export CC65_HOME="$installed_home"
+    echo "[cf-build] Using CC65_HOME=$CC65_HOME"
     return
   fi
 
@@ -104,33 +122,12 @@ configure_cc65_env() {
   echo "[cf-build] Using CC65_HOME=$CC65_HOME"
 }
 
-install_dx() {
-  local install=0
-
-  if ! command -v dx >/dev/null 2>&1; then
-    install=1
-  else
-    local found
-    found="$(dx --version 2>/dev/null | awk '{print $2}')"
-    if [[ "$found" != "$DX_VERSION" ]]; then
-      install=1
-    fi
-  fi
-
-  if [[ "$install" -eq 1 ]]; then
-    echo "[cf-build] Installing Dioxus CLI $DX_VERSION"
-    cargo install dioxus-cli --version "$DX_VERSION" --locked
-  fi
-}
-
 main() {
   install_rust_toolchain
   export PATH="$HOME/.cargo/bin:$HOME/.local/bin:$PATH"
 
-  rustup target add wasm32-unknown-unknown
   install_cc65
   configure_cc65_env
-  install_dx
 
   echo "[cf-build] Building SmashDotNES site artifact"
   cd "$ROOT"

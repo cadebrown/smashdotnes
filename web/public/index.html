@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#070808" />
+    <meta name="color-scheme" content="dark" />
+    <meta
+      name="description"
+      content="A four-fighter platform brawler built for real NES hardware limits. Play the ROM in your browser."
+    />
+    <title>Smash.NES — a real NES platform brawler</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22><rect width=%2232%22 height=%2232%22 rx=%224%22 fill=%22%23070808%22/><path d=%22M7 9h18v4H11v3h12v4H11v3h14v4H7z%22 fill=%22%23f04b2f%22/></svg>" />
+    <link rel="stylesheet" href="/main.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to game</a>
+    <div class="site-shell">
+      <header class="topbar">
+        <a class="brand" href="/" aria-label="Smash.NES home">
+          <span class="power-led" aria-hidden="true"></span>
+          <span>SMASH.NES</span>
+        </a>
+        <nav class="topnav" aria-label="Primary navigation">
+          <a href="/play/">Play</a>
+          <a href="/docs/">Manual</a>
+          <a href="/info/">Build</a>
+        </nav>
+      </header>
+
+      <main id="main" class="home-main">
+        <section class="console-hero" aria-labelledby="hero-title">
+          <div class="console-screen-wrap">
+            <div class="screen-label">
+              <span>NTSC · 60 HZ</span>
+              <span>ATTRACT MODE</span>
+            </div>
+            <div class="console-screen">
+              <img
+                src="/snaps/01_title.png"
+                width="256"
+                height="240"
+                alt="Smash.NES title screen with red, green, orange, and white pixel lettering"
+              />
+              <span class="screen-glass" aria-hidden="true"></span>
+            </div>
+            <div class="console-vents" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+          </div>
+
+          <div class="hero-copy">
+            <p class="eyebrow">Mapper 0 · 32 KB PRG · 8 KB CHR</p>
+            <h1 id="hero-title">Four legends.<br />One tiny cartridge.</h1>
+            <p class="hero-lede">
+              A fast platform fighter rebuilt around actual NES limits, with a source-speed four-voice Melee Menu 1 port,
+              deterministic combat, and no downloads between you and the first punch.
+            </p>
+            <a class="power-button" href="/play/">
+              <span class="power-icon" aria-hidden="true"></span>
+              Power on
+            </a>
+            <p class="control-line"><kbd>WASD</kbd> move · <kbd>J</kbd> jab · <kbd>K</kbd> special · <kbd>Enter</kbd> start</p>
+          </div>
+        </section>
+
+        <section class="hardware-strip" aria-label="Cartridge features">
+          <article><strong>04</strong><span>fighters</span></article>
+          <article><strong>03</strong><span>modes</span></article>
+          <article><strong>60</strong><span>frames / sec</span></article>
+          <article><strong>01</strong><span>real ROM</span></article>
+        </section>
+      </main>
+
+      <footer class="site-footer">
+        <span>Built under NROM-256 constraints.</span>
+        <a href="/rom/smash.nes" download>Download ROM</a>
+      </footer>
+    </div>
+  </body>
+</html>

@@ -1,3 +1,4 @@
+use std::collections::HashSet;
 use std::env;
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -5,12 +6,14 @@ use std::process::{Command, Stdio};
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use anyhow::{bail, Context, Result};
-use clap::{Args, Parser, Subcommand};
+use clap::{Args, Parser, Subcommand, ValueEnum};
+use nessy::audio::{inspect_pcm_wav, WavInspection};
 use nessy::emulator::{run_headless, EmulatorBackend, HeadlessOutcome, HeadlessRun};
-use nessy::ines::inspect_rom;
+use nessy::ines::{inspect_rom, set_battery_flag};
 use nessy::pipeline::{generate_character, generate_roster, sync_runtime_static_includes};
+use nessy::visual::{inspect_screenshot, ScreenshotInspection};
 use pulldown_cmark::{html, Options, Parser as MarkdownParser};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use walkdir::WalkDir;
 
 #[derive(Debug, Parser)]
@@ -82,12 +85,31 @@ enum RomSubcommand {
         labels: PathBuf,
         #[arg(long)]
         skip_generate: bool,
+        #[arg(long, value_enum, default_value_t = TitleVariant::World)]
+        title_variant: TitleVariant,
     },
     /// Inspect iNES metadata from a ROM.
     Inspect {
         #[arg(long, default_value = "out/smash.nes")]
         rom: PathBuf,
     },
+}
+
+#[derive(Clone, Copy, Debug, ValueEnum)]
+enum TitleVariant {
+    World,
+    Challengers,
+    Emblem,
+}
+
+impl TitleVariant {
+    fn define_value(self) -> u8 {
+        match self {
+            Self::World => 0,
+            Self::Challengers => 1,
+            Self::Emblem => 2,
+        }
+    }
 }
 
 #[derive(Debug, Args)]
@@ -108,8 +130,25 @@ enum EmulatorSubcommand {
         script: Option<PathBuf>,
         #[arg(long, default_value_t = 20)]
         timeout_seconds: u64,
+        #[arg(long)]
+        audio: bool,
         #[arg(last = true)]
         extra_args: Vec<String>,
+    },
+    /// Drive named gameplay states and validate native screenshots and optional audio.
+    Capture {
+        #[arg(long, default_value = "out/smash.nes")]
+        rom: PathBuf,
+        #[arg(long, default_value = "nessy/tools/emulator/capture.lua")]
+        script: PathBuf,
+        #[arg(long, default_value = "out/snaps")]
+        output_dir: PathBuf,
+        #[arg(long, default_value = "out/reports/emulator/capture.txt")]
+        report: PathBuf,
+        #[arg(long)]
+        audio_output: Option<PathBuf>,
+        #[arg(long, default_value_t = 20)]
+        timeout_seconds: u64,
     },
 }
 
@@ -136,6 +175,11 @@ enum TestSubcommand {
         #[arg(long)]
         fail_fast: bool,
     },
+    /// Reject missing, undersized, or visually empty PNG screenshots.
+    Screenshots {
+        #[arg(long, default_value = "out/reports/web/screens")]
+        dir: PathBuf,
+    },
 }
 
 #[derive(Debug, Args)]
@@ -159,12 +203,19 @@ enum WebSubcommand {
     },
 }
 
-#[derive(Debug)]
+#[derive(Debug, Deserialize)]
+struct EmulatorSuiteManifest {
+    backend: String,
+    #[serde(rename = "case")]
+    cases: Vec<EmulatorTestCase>,
+}
+
+#[derive(Debug, Deserialize)]
 struct EmulatorTestCase {
-    id: &'static str,
-    script: &'static str,
+    id: String,
+    script: String,
     timeout_seconds: u64,
-    description: &'static str,
+    description: String,
 }
 
 #[derive(Debug, Serialize)]
@@ -174,6 +225,7 @@ struct EmulatorCaseResult {
     script: String,
     report_file: String,
     outcome: Option<HeadlessOutcome>,
+    screenshots: Vec<ScreenshotInspection>,
     status: String,
     detail: String,
 }
@@ -182,9 +234,19 @@ struct EmulatorCaseResult {
 struct EmulatorSuiteSummary {
     backend: String,
     rom: String,
+    manifest: String,
     passed: usize,
     failed: usize,
     cases: Vec<EmulatorCaseResult>,
+}
+
+#[derive(Debug, Serialize)]
+struct CaptureSummary {
+    status: String,
+    detail: String,
+    outcome: HeadlessOutcome,
+    screenshots: Vec<ScreenshotInspection>,
+    audio: Option<WavInspection>,
 }
 
 #[derive(Debug, Serialize)]
@@ -211,33 +273,6 @@ struct BuildMetadata {
     links: Vec<BuildLink>,
 }
 
-const EMULATOR_SUITE_CASES: &[EmulatorTestCase] = &[
-    EmulatorTestCase {
-        id: "boot_smoke",
-        script: "boot_smoke.lua",
-        timeout_seconds: 20,
-        description: "Boots ROM, validates exported signature/state, exits cleanly.",
-    },
-    EmulatorTestCase {
-        id: "frame_progress",
-        script: "frame_progress.lua",
-        timeout_seconds: 20,
-        description: "Verifies frame counter continues increasing under headless execution.",
-    },
-    EmulatorTestCase {
-        id: "input_right",
-        script: "input_right.lua",
-        timeout_seconds: 20,
-        description: "Injects RIGHT input and verifies test position increases.",
-    },
-    EmulatorTestCase {
-        id: "long_stability",
-        script: "long_stability.lua",
-        timeout_seconds: 35,
-        description: "Runs longer session and checks runtime remains responsive.",
-    },
-];
-
 fn main() -> Result<()> {
     let cli = Cli::parse();
     let root = resolve_root(cli.root)?;
@@ -248,7 +283,7 @@ fn main() -> Result<()> {
         TopLevel::Emulator(emulator) => run_emulator(&root, emulator.command)?,
         TopLevel::Test(test) => run_test(&root, test.command)?,
         TopLevel::Web(web) => run_web(&root, web.command)?,
-        TopLevel::Doctor => run_doctor(),
+        TopLevel::Doctor => run_doctor()?,
     }
 
     Ok(())
@@ -287,6 +322,7 @@ fn run_rom(root: &Path, cmd: RomSubcommand) -> Result<()> {
             map,
             labels,
             skip_generate,
+            title_variant,
         } => {
             sync_runtime_static_includes(root)?;
 
@@ -305,7 +341,7 @@ fn run_rom(root: &Path, cmd: RomSubcommand) -> Result<()> {
                 .with_context(|| format!("failed to create {}", obj_dir.display()))?;
 
             let source_dir = root.join(source_dir);
-            let sources = ["main.c", "chr.s", "ppubuf_stub.s"];
+            let sources = ["main.c", "music.c", "chr.s", "ppubuf_stub.s"];
             let mut objects = Vec::new();
 
             for source in sources {
@@ -314,18 +350,27 @@ fn run_rom(root: &Path, cmd: RomSubcommand) -> Result<()> {
                     bail!("missing required source file: {}", source_path.display());
                 }
 
-                let object_path =
-                    obj_dir.join(format!("{}.o", source.trim_end_matches(['.', 'c', 's'])));
-                let args = vec![
+                let object_name = Path::new(source)
+                    .file_stem()
+                    .and_then(|stem| stem.to_str())
+                    .with_context(|| format!("invalid source filename: {source}"))?;
+                let object_path = obj_dir.join(format!("{object_name}.o"));
+                let mut args = vec![
                     "-t".to_string(),
                     "nes".to_string(),
                     "-Oirs".to_string(),
                     "-Cl".to_string(),
+                ];
+                if source == "main.c" {
+                    args.push("-D".to_string());
+                    args.push(format!("TITLE_VARIANT={}", title_variant.define_value()));
+                }
+                args.extend([
                     "-c".to_string(),
                     "-o".to_string(),
                     object_path.to_string_lossy().to_string(),
                     source_path.to_string_lossy().to_string(),
-                ];
+                ]);
                 run_command("cl65", &args, root)?;
                 objects.push(object_path);
             }
@@ -359,11 +404,15 @@ fn run_rom(root: &Path, cmd: RomSubcommand) -> Result<()> {
                 link_args.push(object.to_string_lossy().to_string());
             }
             run_command("cl65", &link_args, root)?;
+            set_battery_flag(&output, false)?;
 
             println!("Built {}", output.display());
         }
         RomSubcommand::Inspect { rom } => {
             let report = inspect_rom(&root.join(rom))?;
+            if report.has_battery {
+                bail!("ROM unexpectedly declares battery-backed RAM");
+            }
             print!("{}", report);
             println!("PASS: iNES checks succeeded");
         }
@@ -379,6 +428,7 @@ fn run_emulator(root: &Path, cmd: EmulatorSubcommand) -> Result<()> {
             rom,
             script,
             timeout_seconds,
+            audio,
             extra_args,
         } => {
             let backend: EmulatorBackend = backend.parse()?;
@@ -387,12 +437,123 @@ fn run_emulator(root: &Path, cmd: EmulatorSubcommand) -> Result<()> {
                 rom: root.join(rom),
                 script: script.map(|value| root.join(value)),
                 timeout_seconds,
+                audio,
                 cwd: Some(root.to_path_buf()),
                 extra_args,
                 env: Vec::new(),
+                log_file: None,
             };
             let outcome = run_headless(&run)?;
             println!("{}", serde_json::to_string_pretty(&outcome)?);
+        }
+        EmulatorSubcommand::Capture {
+            rom,
+            script,
+            output_dir,
+            report,
+            audio_output,
+            timeout_seconds,
+        } => {
+            let rom = root.join(rom);
+            let script = root.join(script);
+            let output_dir = root.join(output_dir);
+            let report = root.join(report);
+            let audio_output = audio_output.map(|path| root.join(path));
+            let runtime_dir = root.join("out/reports/emulator/runtime/capture");
+            let cfg_dir = runtime_dir.join("cfg");
+            let nvram_dir = runtime_dir.join("nvram");
+            fs::create_dir_all(&output_dir)
+                .with_context(|| format!("failed to create {}", output_dir.display()))?;
+            fs::create_dir_all(&cfg_dir)
+                .with_context(|| format!("failed to create {}", cfg_dir.display()))?;
+            fs::create_dir_all(&nvram_dir)
+                .with_context(|| format!("failed to create {}", nvram_dir.display()))?;
+            if let Some(parent) = report.parent() {
+                fs::create_dir_all(parent)
+                    .with_context(|| format!("failed to create {}", parent.display()))?;
+            }
+
+            let expected = [
+                "01_title.png",
+                "02_lobby.png",
+                "03_battle.png",
+                "04_walk.png",
+                "05_jump.png",
+                "06_jab.png",
+                "07_special.png",
+            ];
+            for name in expected {
+                let path = output_dir.join(name);
+                if path.exists() {
+                    fs::remove_file(&path)
+                        .with_context(|| format!("failed to clear {}", path.display()))?;
+                }
+            }
+            if report.exists() {
+                fs::remove_file(&report)
+                    .with_context(|| format!("failed to clear {}", report.display()))?;
+            }
+            if let Some(path) = &audio_output {
+                if let Some(parent) = path.parent() {
+                    fs::create_dir_all(parent)
+                        .with_context(|| format!("failed to create {}", parent.display()))?;
+                }
+                if path.exists() {
+                    fs::remove_file(path)
+                        .with_context(|| format!("failed to clear {}", path.display()))?;
+                }
+            }
+
+            let mut extra_args = vec![
+                "-cfg_directory".to_string(),
+                cfg_dir.to_string_lossy().to_string(),
+                "-nvram_directory".to_string(),
+                nvram_dir.to_string_lossy().to_string(),
+                "-snapshot_directory".to_string(),
+                output_dir.to_string_lossy().to_string(),
+            ];
+            if let Some(path) = &audio_output {
+                extra_args.push("-wavwrite".to_string());
+                extra_args.push(path.to_string_lossy().to_string());
+            }
+            let run = HeadlessRun {
+                backend: EmulatorBackend::Mame,
+                rom,
+                script: Some(script),
+                timeout_seconds,
+                audio: audio_output.is_some(),
+                cwd: Some(root.to_path_buf()),
+                extra_args,
+                env: vec![
+                    (
+                        "NESSY_CAPTURE_DIR".to_string(),
+                        output_dir.to_string_lossy().to_string(),
+                    ),
+                    (
+                        "NESSY_CAPTURE_REPORT".to_string(),
+                        report.to_string_lossy().to_string(),
+                    ),
+                ],
+                log_file: Some(root.join("out/reports/emulator/capture.log")),
+            };
+            let outcome = run_headless(&run)?;
+            let (status, detail) = parse_case_report(&report)?;
+            if status != "PASS" {
+                bail!("capture driver failed: {detail}");
+            }
+            let screenshots = expected
+                .iter()
+                .map(|name| inspect_screenshot(&output_dir.join(name)))
+                .collect::<Result<Vec<_>>>()?;
+            let audio = audio_output.as_deref().map(inspect_pcm_wav).transpose()?;
+            let summary = CaptureSummary {
+                status,
+                detail,
+                outcome,
+                screenshots,
+                audio,
+            };
+            println!("{}", serde_json::to_string_pretty(&summary)?);
         }
     }
 
@@ -412,13 +573,27 @@ fn run_test(root: &Path, cmd: TestSubcommand) -> Result<()> {
             let backend: EmulatorBackend = backend.parse()?;
             let rom_path = root.join(rom);
             let suite_dir = root.join(suite_dir);
+            let manifest_path = suite_dir.join("suite.toml");
+            let manifest = load_emulator_suite(&manifest_path)?;
+            if manifest.backend != backend.as_str() {
+                bail!(
+                    "suite {} targets backend '{}', not '{}'",
+                    manifest_path.display(),
+                    manifest.backend,
+                    backend.as_str()
+                );
+            }
             let report_dir = root.join(report_dir);
             fs::create_dir_all(&report_dir)
                 .with_context(|| format!("failed to create {}", report_dir.display()))?;
 
             let mut selected = Vec::new();
-            for case in EMULATOR_SUITE_CASES {
-                if case_filters.is_empty() || case_filters.iter().any(|item| item == case.id) {
+            for case in &manifest.cases {
+                if case_filters.is_empty()
+                    || case_filters
+                        .iter()
+                        .any(|item| item.as_str() == case.id.as_str())
+                {
                     selected.push(case);
                 }
             }
@@ -431,34 +606,101 @@ fn run_test(root: &Path, cmd: TestSubcommand) -> Result<()> {
             let mut failed = 0usize;
 
             for case in selected {
-                let script = suite_dir.join(case.script);
+                let script = suite_dir.join(&case.script);
+                let case_report = report_dir.join(format!("{}.txt", case.id));
                 if !script.exists() {
-                    bail!("missing emulator suite script: {}", script.display());
+                    failed += 1;
+                    results.push(EmulatorCaseResult {
+                        id: case.id.clone(),
+                        description: case.description.clone(),
+                        script: script.to_string_lossy().to_string(),
+                        report_file: case_report.to_string_lossy().to_string(),
+                        outcome: None,
+                        screenshots: Vec::new(),
+                        status: "FAIL".to_string(),
+                        detail: format!("missing emulator suite script: {}", script.display()),
+                    });
+                    if fail_fast {
+                        break;
+                    }
+                    continue;
                 }
 
-                let case_report = report_dir.join(format!("{}.txt", case.id));
                 if case_report.exists() {
                     fs::remove_file(&case_report).with_context(|| {
                         format!("failed to clear previous report {}", case_report.display())
                     })?;
                 }
 
+                let artifact_dir = report_dir.join("artifacts").join(&case.id);
+                let runtime_dir = report_dir.join("runtime").join(&case.id);
+                let cfg_dir = runtime_dir.join("cfg");
+                let nvram_dir = runtime_dir.join("nvram");
+                if artifact_dir.exists() {
+                    fs::remove_dir_all(&artifact_dir)
+                        .with_context(|| format!("failed to reset {}", artifact_dir.display()))?;
+                }
+                if runtime_dir.exists() {
+                    fs::remove_dir_all(&runtime_dir)
+                        .with_context(|| format!("failed to reset {}", runtime_dir.display()))?;
+                }
+                fs::create_dir_all(&artifact_dir)
+                    .with_context(|| format!("failed to create {}", artifact_dir.display()))?;
+                fs::create_dir_all(&cfg_dir)
+                    .with_context(|| format!("failed to create {}", cfg_dir.display()))?;
+                fs::create_dir_all(&nvram_dir)
+                    .with_context(|| format!("failed to create {}", nvram_dir.display()))?;
+
+                let extra_args = match backend {
+                    EmulatorBackend::Mame => vec![
+                        "-cfg_directory".to_string(),
+                        cfg_dir.to_string_lossy().to_string(),
+                        "-nvram_directory".to_string(),
+                        nvram_dir.to_string_lossy().to_string(),
+                        "-snapshot_directory".to_string(),
+                        artifact_dir.to_string_lossy().to_string(),
+                    ],
+                    EmulatorBackend::Fceux => Vec::new(),
+                };
+
                 let run = HeadlessRun {
                     backend,
                     rom: rom_path.clone(),
                     script: Some(script.clone()),
                     timeout_seconds: case.timeout_seconds,
+                    audio: false,
                     cwd: Some(root.to_path_buf()),
-                    extra_args: Vec::new(),
-                    env: vec![(
-                        "NESSY_TEST_OUT".to_string(),
-                        case_report.to_string_lossy().to_string(),
-                    )],
+                    extra_args,
+                    env: vec![
+                        (
+                            "NESSY_TEST_OUT".to_string(),
+                            case_report.to_string_lossy().to_string(),
+                        ),
+                        (
+                            "NESSY_ARTIFACT_DIR".to_string(),
+                            artifact_dir.to_string_lossy().to_string(),
+                        ),
+                    ],
+                    log_file: Some(report_dir.join("logs").join(format!("{}.log", case.id))),
                 };
 
                 match run_headless(&run) {
                     Ok(outcome) => {
-                        let (status, detail) = parse_case_report(&case_report)?;
+                        let (mut status, mut detail) = match parse_case_report(&case_report) {
+                            Ok(report) => report,
+                            Err(err) => (
+                                "FAIL".to_string(),
+                                format!("emulator exited without a valid report: {err:#}"),
+                            ),
+                        };
+                        let screenshots = match inspect_screenshot_tree(&artifact_dir) {
+                            Ok(screenshots) => screenshots,
+                            Err(err) => {
+                                status = "FAIL".to_string();
+                                detail = format!("{detail}; invalid screenshot artifact: {err:#}");
+                                Vec::new()
+                            }
+                        };
                         if status == "PASS" {
                             passed += 1;
                         } else {
@@ -466,11 +708,12 @@ fn run_test(root: &Path, cmd: TestSubcommand) -> Result<()> {
                         }
 
                         results.push(EmulatorCaseResult {
-                            id: case.id.to_string(),
-                            description: case.description.to_string(),
+                            id: case.id.clone(),
+                            description: case.description.clone(),
                             script: script.to_string_lossy().to_string(),
                             report_file: case_report.to_string_lossy().to_string(),
                             outcome: Some(outcome),
+                            screenshots,
                             status,
                             detail,
                         });
@@ -478,11 +721,12 @@ fn run_test(root: &Path, cmd: TestSubcommand) -> Result<()> {
                     Err(err) => {
                         failed += 1;
                         results.push(EmulatorCaseResult {
-                            id: case.id.to_string(),
-                            description: case.description.to_string(),
+                            id: case.id.clone(),
+                            description: case.description.clone(),
                             script: script.to_string_lossy().to_string(),
                             report_file: case_report.to_string_lossy().to_string(),
                             outcome: None,
+                            screenshots: Vec::new(),
                             status: "FAIL".to_string(),
                             detail: err.to_string(),
                         });
@@ -497,6 +741,7 @@ fn run_test(root: &Path, cmd: TestSubcommand) -> Result<()> {
             let summary = EmulatorSuiteSummary {
                 backend: backend.as_str().to_string(),
                 rom: rom_path.to_string_lossy().to_string(),
+                manifest: manifest_path.to_string_lossy().to_string(),
                 passed,
                 failed,
                 cases: results,
@@ -510,6 +755,36 @@ fn run_test(root: &Path, cmd: TestSubcommand) -> Result<()> {
             if failed > 0 {
                 bail!("emulator suite failed: {failed} case(s) failed");
             }
+        }
+        TestSubcommand::Screenshots { dir } => {
+            let dir = root.join(dir);
+            if !dir.is_dir() {
+                bail!("screenshot directory does not exist: {}", dir.display());
+            }
+
+            let mut screenshots = WalkDir::new(&dir)
+                .into_iter()
+                .filter_map(|entry| entry.ok())
+                .filter(|entry| entry.file_type().is_file())
+                .filter(|entry| {
+                    entry
+                        .path()
+                        .extension()
+                        .and_then(|extension| extension.to_str())
+                        .is_some_and(|extension| extension.eq_ignore_ascii_case("png"))
+                })
+                .map(|entry| entry.into_path())
+                .collect::<Vec<_>>();
+            screenshots.sort();
+            if screenshots.is_empty() {
+                bail!("no PNG screenshots found under {}", dir.display());
+            }
+
+            let inspections = screenshots
+                .iter()
+                .map(|path| inspect_screenshot(path))
+                .collect::<Result<Vec<_>>>()?;
+            println!("{}", serde_json::to_string_pretty(&inspections)?);
         }
     }
 
@@ -525,6 +800,54 @@ fn parse_case_report(path: &Path) -> Result<(String, String)> {
     let detail = lines.next().unwrap_or("no detail").trim().to_string();
 
     Ok((status, detail))
+}
+
+fn inspect_screenshot_tree(dir: &Path) -> Result<Vec<ScreenshotInspection>> {
+    let mut paths = WalkDir::new(dir)
+        .into_iter()
+        .filter_map(|entry| entry.ok())
+        .filter(|entry| entry.file_type().is_file())
+        .filter(|entry| {
+            entry
+                .path()
+                .extension()
+                .and_then(|extension| extension.to_str())
+                .is_some_and(|extension| extension.eq_ignore_ascii_case("png"))
+        })
+        .map(|entry| entry.into_path())
+        .collect::<Vec<_>>();
+    paths.sort();
+    paths.iter().map(|path| inspect_screenshot(path)).collect()
+}
+
+fn load_emulator_suite(path: &Path) -> Result<EmulatorSuiteManifest> {
+    let raw = fs::read_to_string(path)
+        .with_context(|| format!("failed to read emulator suite manifest {}", path.display()))?;
+    let mut manifest: EmulatorSuiteManifest = toml::from_str(&raw)
+        .with_context(|| format!("invalid emulator suite manifest {}", path.display()))?;
+    if manifest.cases.is_empty() {
+        bail!("emulator suite manifest has no cases: {}", path.display());
+    }
+
+    let mut ids = HashSet::new();
+    for case in &manifest.cases {
+        if case.id.is_empty()
+            || !case
+                .id
+                .chars()
+                .all(|character| character.is_ascii_alphanumeric() || character == '_')
+        {
+            bail!("invalid emulator case id '{}': use [A-Za-z0-9_]", case.id);
+        }
+        if !ids.insert(case.id.clone()) {
+            bail!("duplicate emulator case id '{}'", case.id);
+        }
+        if case.timeout_seconds == 0 {
+            bail!("emulator case '{}' has a zero timeout", case.id);
+        }
+    }
+    manifest.cases.sort_by(|left, right| left.id.cmp(&right.id));
+    Ok(manifest)
 }
 
 fn run_web(root: &Path, cmd: WebSubcommand) -> Result<()> {
@@ -554,11 +877,16 @@ fn run_web(root: &Path, cmd: WebSubcommand) -> Result<()> {
                 fs::remove_dir_all(&public_snaps)
                     .with_context(|| format!("failed to remove {}", public_snaps.display()))?;
             }
-            if root.join(&snaps).exists() {
-                copy_tree(&root.join(snaps), &public_snaps)?;
+            let source_snaps = root.join(snaps);
+            if source_snaps.join("01_title.png").is_file() {
+                copy_tree(&source_snaps, &public_snaps)?;
             } else {
                 fs::create_dir_all(&public_snaps)
                     .with_context(|| format!("failed to create {}", public_snaps.display()))?;
+                copy_file(
+                    &public.join("assets/title-screen.png"),
+                    &public_snaps.join("01_title.png"),
+                )?;
             }
 
             write_build_metadata(root, &public, &public_rom)?;
@@ -569,34 +897,56 @@ fn run_web(root: &Path, cmd: WebSubcommand) -> Result<()> {
     Ok(())
 }
 
-fn run_doctor() {
+fn run_doctor() -> Result<()> {
     let checks = [
         ("cargo", true),
         ("cl65", true),
         ("mame", false),
         ("fceux", false),
-        ("firefox", false),
-        ("dx", false),
+        ("node", false),
+        ("npm", false),
+        ("magick", false),
     ];
 
     println!("Toolchain check:\n");
+    let mut missing_required = Vec::new();
     for (tool, required) in checks {
-        let present = binary_on_path(tool);
+        let path = binary_on_path(tool);
+        let present = path.is_some();
         let status = if present { "found" } else { "missing" };
         let req = if required { "required" } else { "optional" };
-        println!("- {:<8} {:<7} ({})", tool, status, req);
+        let location = path
+            .as_ref()
+            .map(|path| format!(" at {}", path.display()))
+            .unwrap_or_default();
+        println!("- {:<8} {:<7} ({}){}", tool, status, req, location);
+        if required && !present {
+            missing_required.push(tool);
+        }
     }
+
+    if !missing_required.is_empty() {
+        bail!(
+            "missing required toolchain binaries: {}",
+            missing_required.join(", ")
+        );
+    }
+    Ok(())
 }
 
-fn binary_on_path(program: &str) -> bool {
-    let Some(paths) = env::var_os("PATH") else {
-        return false;
-    };
+fn binary_on_path(program: &str) -> Option<PathBuf> {
+    let paths = env::var_os("PATH")?;
 
-    env::split_paths(&paths).any(|dir| {
+    env::split_paths(&paths).find_map(|dir| {
         let candidate = dir.join(program);
         let candidate_exe = dir.join(format!("{}.exe", program));
-        candidate.exists() || candidate_exe.exists()
+        if candidate.is_file() {
+            Some(candidate)
+        } else if candidate_exe.is_file() {
+            Some(candidate_exe)
+        } else {
+            None
+        }
     })
 }
 
@@ -767,25 +1117,34 @@ fn render_doc_html_page(title: &str, body_html: &str, markdown_rel_path: &Path) 
     let markdown_rel_display = markdown_rel_path.to_string_lossy().replace('\\', "/");
     let markdown_source_url = format!("/docs/{markdown_rel_display}");
     format!(
-        r#"<!doctype html>
+        r##"<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>docs</title>
+    <meta name="theme-color" content="#070808" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="description" content="Smash.NES technical manual: {title}." />
+    <title>{title} — Smash.NES Manual</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22><rect width=%2232%22 height=%2232%22 rx=%224%22 fill=%22%23070808%22/><path d=%22M7 9h18v4H11v3h12v4H11v3h14v4H7z%22 fill=%22%23e64b31%22/></svg>" />
     <link rel="stylesheet" href="/main.css" />
   </head>
   <body>
-    <main class="page-shell">
+    <a class="skip-link" href="#main">Skip to manual</a>
+    <main id="main" class="page-shell">
       <header class="topbar">
-        <a class="brand" href="/">SMASH.NES</a>
-        <nav class="topnav">
-          <a href="/play">Play</a>
-          <a href="/docs">Docs</a>
-          <a href="/info">Info</a>
+        <a class="brand" href="/" aria-label="Smash.NES home">
+          <span class="power-led" aria-hidden="true"></span>
+          <span>SMASH.NES</span>
+        </a>
+        <nav class="topnav" aria-label="Primary navigation">
+          <a href="/play/">Play</a>
+          <a href="/docs/" aria-current="page">Manual</a>
+          <a href="/info/">Build</a>
         </nav>
       </header>
       <section class="panel page-copy">
+        <p class="eyebrow">Technical manual</p>
         <h1 class="page-title">{title}</h1>
         <p class="muted doc-meta">source: {markdown_rel_display}</p>
         <article class="doc-article">
@@ -796,7 +1155,7 @@ fn render_doc_html_page(title: &str, body_html: &str, markdown_rel_path: &Path) 
     </main>
   </body>
 </html>
-"#
+"##
     )
 }
 

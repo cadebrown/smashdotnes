@@ -1,192 +1,147 @@
 # SmashDotNES
 
-SmashDotNES is a retro-fitted Super Smash Bros-style NES project with a modern, automated toolchain.
+SmashDotNES is a four-fighter platform brawler that runs as a real mapper-0 NES ROM. The repository also contains the content compiler, deterministic MAME drivers, audio and screenshot inspectors, and a static browser player that runs the same ROM through vendored EmulatorJS.
 
-The repository is organized for deterministic, headless development:
-- NES runtime source and game data in `src/`
-- reusable Rust tooling and CLI in `nessy/`
-- a Rust + Dioxus web surface in `web/`
-- publish-facing technical docs in `docs/`
-- Cloudflare deployment infrastructure in `infra/`
+## What works
 
-## Highlights
+- Two-player, player-vs-CPU, and CPU-vs-CPU battles
+- Mario, Simon, and Tommy with 14 editable poses; Rizer has a fifteenth curl pose
+- Jabs, character specials, projectiles, jumping, knockback, damage, and KOs
+- A source-speed four-voice NES port of Super Smash Bros. Melee's Menu 1 theme
+- Contact-only hit sparks and synchronized simulation/render action frames
+- Data-driven PNG/TOML fighter visuals and animation frame selection
+- Deterministic native captures, PCM inspection, combat probes, and long-run checks
+- Offline browser play with keyboard/touch controls and Playwright-driven screenshots
 
-- Unified per-character layout: one folder per fighter (`src/chars/<id>/`) containing spec, art, and generated outputs.
-- Spec-driven content pipeline: new fighters are authored with TOML + PNG, then compiled without changing Rust source.
-- Headless emulator automation: scripted MAME/FCEUX runs for smoke, progression, input, and long-run stability checks.
-- Publish-ready web package: clean endpoints (`/play`, `/docs`, `/info`), ROM hosting, docs export, and automated screenshots.
-
-## Repository Layout
-
-```text
-.
-|- src/
-|  |- main.c
-|  |- chr.s
-|  |- ppubuf_stub.s
-|  |- nessmash.cfg
-|  |- chars/
-|  |  |- _template.toml
-|  |  |- mario/
-|  |  |- simon/
-|  |  |- tommy/
-|  |  `- rizer/
-|  `- generated/
-|- nessy/
-|  |- src/
-|  |- tests/
-|  `- tools/
-|- web/
-|  |- src/
-|  `- public/
-|- docs/
-|- infra/
-|- Makefile
-`- Cargo.toml
-```
-
-## Prerequisites
+## Quick start
 
 Required:
+
 - Rust stable (`cargo`)
-- `cl65` from cc65
+- cc65 (`cl65`)
 
-Optional by workflow:
-- `mame` for headless emulator suite and local runs
-- `fceux` as alternate emulator backend
-- Dioxus CLI (`dx`) for web build/dev (`0.7.2` to match crate dependencies)
-- `firefox` (headless) for web screenshot automation
+For the full test drive:
 
-Run environment checks:
+- MAME (`mame`) for scripted emulator automation
+- Node.js and npm for Playwright browser automation
+- `uv` for the local static server
+- ImageMagick (`magick`) for the title-direction comparison sheet
 
-```bash
-cargo run --package nessy -- doctor
-```
-
-## Quick Start
+FCEUX is the independent native-core check. The full gameplay/TAS suite uses MAME's machine API; `make test-fceux` runs a separate FCEUX-native Lua boot and frame-progression probe.
 
 ```bash
 make doctor
 make build
+make capture-audio
 make test
 ```
 
-This performs generation, ROM build + inspect, Rust tests, emulator suite, and web automation.
+`make capture-audio` drives seven named game states, validates every 256x240 PNG, records a WAV, and rejects silence or clipping. Reports land under `out/reports/`.
 
-## Make Targets
+## Commands
 
-- `make generate`: generate character + roster artifacts from `src/chars/*/character.toml`
-- `make build`: generate assets, build `out/smash.nes`, run iNES inspection
-- `make inspect`: inspect `out/smash.nes`
-- `make run`: build and launch emulator (`EMULATOR=mame|fceux`)
-- `make smoke`: run single emulator smoke case
-- `make test-emu`: run full headless emulator suite
-- `make test-web`: build + verify + screenshot the web interface
-- `make test`: run workspace tests, emulator suite, and web suite
-- `make web-sync`: sync ROM/docs/screenshots to `web/public`
-- `make web-dev`: sync and launch Dioxus web dev server
-- `make ci-pages`: stage deployable static output in `site/` (used by Cloudflare build)
-- `make clean`: remove generated artifacts and output directories
+- `make generate`: compile fighter PNG/TOML and music TOML into ROM inputs
+- `make rebuild-fighters`: verify the locked sources and rebuild every fighter sheet
+- `make capture-kung-fu-reference`: TAS a locally owned Kung Fu ROM for source comparison
+- `make rebuild-music`: verify the locked Menu 1 MIDI and regenerate the event-driven NES port
+- `make build`: generate, link `out/smash.nes`, and validate its iNES header
+- `make run`: launch the ROM interactively (`EMULATOR=mame|fceux`)
+- `make capture`: drive title, lobby, battle, walk, jump, jab, and special captures
+- `make capture-audio`: run the same drive with validated PCM output
+- `make capture-theme`: record the complete Menu 1 arrangement and prove its loop point
+- `make title-iterations`: build, drive, and compare the world, challengers, and emblem title ROMs
+- `make smoke`: run the manifest's boot case
+- `make tas`: run 16-shot fighter drives, add Rizer's seventeenth curl, and build contact sheets
+- `make test-emu`: run every case in `nessy/tools/emulator/suite/suite.toml`
+- `make test-web`: drive desktop, mobile, docs, metadata, and a live EmulatorJS session
+- `make test`: run Rust, native emulator, and browser gates
+- `make web-dev`: sync and serve `web/public` at `http://127.0.0.1:8080`
+- `make ci-pages`: stage the exact static deployment tree in `site/`
 
-## Web Routes and Controls
+## Repository map
 
-Primary web routes:
-- `/`: landing page
-- `/play`: emulator page
-- `/docs`: four-guide documentation index
-- `/info`: build metadata and links
-
-Default `/play` keyboard bindings:
-- `WASD`: movement
-- `K`: A
-- `J`: B
-- `Enter`: Start
-- `'`: Select
-
-## Generated Runtime Directories
-
-These directories are local runtime/build artifacts and are gitignored:
-
-- `out/` (ROMs, reports, screenshots)
-- `cfg/` and `nvram/` (emulator runtime state/config)
-- `target/`, `dist/`, `site/`, `test-results/`
-- generated includes under `src/generated/` and `src/chars/*/generated/`
-- synced web outputs under `web/public/docs/`, `web/public/snaps/`, `web/public/rom/smash.nes`, `web/public/info/build.json`
-
-## Add a New Fighter
-
-1. Create a character folder:
-
-```bash
-mkdir -p src/chars/<id>
+```text
+src/
+  main.c, music.c       NES runtime
+  chars/<id>/           editable fighter TOML and 14/15-pose PNG sheets
+  generated/            generated C/assembly inputs
+nessy/
+  assets/music.toml     generated NES score
+  src/                  Rust compiler, ROM tools, emulator runner, inspectors
+  tools/emulator/       capture driver and manifest-driven MAME scenarios
+  tools/web/            browser gate entrypoint
+web/
+  public/               exact static publish source and vendored EmulatorJS
+  tests/                Playwright interaction and screenshot tests
+docs/                   architecture, automation, schema, implementation notes
+infra/cloudflare/       Cloudflare Pages build/provisioning contract
 ```
 
-2. Add a sprite sheet and spec:
-- `src/chars/<id>/sheet.png`
-- `src/chars/<id>/character.toml` (start from `src/chars/_template.toml`)
+## Fighter pipeline
 
-3. Generate artifacts and build:
+Each runtime slot owns:
 
-```bash
-make generate
-make build
-```
+- `src/chars/<id>/sheet.png`: 14 or 15 aligned 32x40 frames
+- `src/chars/<id>/character.toml`: frame regions, animations, timing, and state metadata
 
-Generated files appear in:
-- `src/chars/<id>/generated/`
-- `src/generated/`
+`make generate` emits:
 
-No Rust code changes are required for standard character onboarding.
+- `src/generated/roster_chr.inc`: a flip-aware, deduplicated fighter atlas, consumed by `src/chr.s`
+- `src/generated/roster_runtime.h`: packed OAM commands, hardware-flip attributes, semantic frame maps, and timing, consumed by `src/main.c`
+- per-fighter CHR, state-graph, and metadata files for inspection
 
-## Documentation
+Idle and hurt use one pose. Walk uses an A-B-C-B four-step cadence; jab and special retain three timed phases. Non-looping jumps select rise, apex, and fall from vertical velocity, while Rizer cycles four source-authentic curl poses for his entire airborne state, including while firing. The current atlas packs 1,140 logical tile positions into 244 unique fighter tiles by skipping transparent tiles and sharing horizontal/vertical variants through NES sprite flips. Eight more tiles hold projectiles, whip segments, and the shared hit-spark/menu marker, leaving four sprite-pattern slots free. Mirrored fireball, axe, and curl phases use hardware flip bits instead of duplicate CHR.
 
-The docs are intentionally focused into four high-level guides:
+The graph compiler emits each jab and special's total duration, phase boundaries, and inclusive active window from TOML. `src/main.c` uses those tables for both rendering and collision. Movement rules and state transitions remain explicit C mechanics; the exported graph is not a general runtime interpreter. Replacing art, frame order, or action timing is data-only. Adding a fifth slot still requires deliberate menu, palette, OAM, and CHR budget work.
 
-- `docs/architecture.md`
-- `docs/automation.md`
-- `docs/spec_reference.md`
-- `docs/implementation_notes.md`
-
-The web app serves documentation from `/docs` (plus generated per-doc HTML pages) after `make web-sync`.
-
-## Release Checklist
-
-1. `make test`
-2. `make web-sync`
-3. Review outputs in `out/reports/emulator/summary.json` and `out/reports/web/summary.json`
-4. Verify `out/smash.nes` and publish assets from `target/dx/smash-web/.../public`
-
-## Test Cloudflare Build Locally
-
-Run the same core artifact build used by Cloudflare Pages:
+To rebuild all four sheets from locked source images:
 
 ```bash
-make ci-pages
+make rebuild-fighters
 ```
 
-This produces the publish artifact in `site/`.
+`nessy/assets/fighter_sources.lock` records each URL and SHA-256 digest. The script verifies every download, rebuilds coherent SMB3 Mario, Castlevania Simon, Kung Fu Thomas, and ROM-extracted Contra pose sets, and fails unless every 32x40 frame stays within one NES sprite palette. Raw references stay in the ignored `out/reference-sprites/` cache. `make capture-kung-fu-reference KUNG_FU_ROM=/path/to/Kung\ Fu.nes` drives an original local ROM and writes a 44-frame comparison sheet without bundling or downloading game code.
 
-## Cloudflare Deploy
+## Music pipeline
 
-Cloudflare Pages infrastructure is managed with OpenTofu:
+Run `make rebuild-music` to download and verify the locked [VGMusic Menu 1 MIDI](https://www.vgmusic.com/file/3196febfd6b9651f9360ccb17deeea3c.html), sequenced by Dr. Fruitcake, and regenerate `nessy/assets/music.toml`. The reducer follows the complete Menu 1 form and source events instead of extracting a few bars. Its 154.113 BPM schedule is derived from the original 1,594,676-sample, 32 kHz loop documented by [Smash Custom Music](https://www.smashcustommusic.net/song/3418): 49.8336 seconds, or 2,995 NTSC frames. Edit the voice-routing policy in `nessy/tools/music/rebuild_music.py`, not the generated TOML.
 
-- `infra/cloudflare/main.tf`
-- `infra/cloudflare/build.sh`
+Nessy expands and validates the generated score into `src/generated/music_data.h`; malformed event ticks, voice lengths, notes, controls, tempo, and loops fail the build. `src/music.c` sequences 926 variable-duration events through pulse 1, pulse 2, triangle, and noise, keeps the theme continuous across scene changes, and layers short jump, hit, and KO cues over it.
 
-Provision/update:
+## Agent and CI entrypoints
 
-```bash
-cd infra/cloudflare
-cp terraform.tfvars.example terraform.tfvars
-export CLOUDFLARE_API_TOKEN="..."
-tofu init
-tofu plan
-tofu apply
-```
+Native scenarios are declared in `nessy/tools/emulator/suite/suite.toml`. Add a Lua file and one manifest entry; Rust discovers, sorts, isolates, logs, and aggregates it. Each case receives:
 
-After provisioning, Cloudflare Pages deploys directly from GitHub using the configured build command.
+- `NESSY_TEST_OUT`: required two-line PASS/FAIL report path
+- `NESSY_ARTIFACT_DIR`: case-specific screenshot/artifact directory
+- isolated MAME config and NVRAM directories
 
-No GitHub Actions deployment workflow is required.
+Browser tests start their own local server, reject external requests and console errors, wait for a running emulator rather than page load, inject real keyboard input, prove the canvas changes, verify Tab escapes the emulator, and reject blank or placeholder screenshots.
+
+Useful evidence:
+
+- `out/reports/emulator/summary.json`
+- `out/reports/emulator/logs/*.log`
+- `out/reports/emulator/artifacts/`
+- `out/reports/web/summary.json`
+- `out/reports/web/screens/*.png`
+- `out/snaps/*.png`
+
+## Web routes
+
+- `/`: cartridge landing page
+- `/play/`: offline EmulatorJS player
+- `/docs/`: generated technical manual
+- `/info/`: source and ROM build provenance
+- `/rom/smash.nes`: downloadable ROM
+
+Keyboard controls are `WASD` to move, `J` for A/jab, `K` for B/special, `Enter` for Start, and `'` for Select. Clicking the screen focuses input; Tab navigates out normally. Held keyboard controls release when focus leaves the player, the window loses focus, or the tab is hidden.
+
+## Deployment
+
+`make ci-pages` builds the ROM, syncs docs/metadata and any current captures, and copies only `web/public` into `site/`. A tracked title capture is used when MAME output is unavailable in the build environment. There is no Dioxus/WASM shell or `dx` dependency in the publish path. Cloudflare Pages uses `bash infra/cloudflare/build.sh` and publishes `site/`.
+
+No deployment is performed by local test commands.
 
 ## License
 

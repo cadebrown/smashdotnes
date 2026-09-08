@@ -49,12 +49,29 @@ local function wait_frames(n)
   end
 end
 
+local function wait_game_frames(n)
+  local previous = rb(4)
+  local advanced = 0
+  local polls = 0
+  local poll_limit = n * 32 + 120
+  while advanced < n and polls < poll_limit do
+    wait_frames(1)
+    polls = polls + 1
+    local current = rb(4)
+    if current ~= previous then
+      advanced = advanced + 1
+      previous = current
+    end
+  end
+  return advanced == n
+end
+
 local function tap_p1(button, hold_frames)
   clear_p1()
   set_p1(button, true)
-  wait_frames(hold_frames or 2)
+  wait_game_frames(hold_frames or 2)
   clear_p1()
-  wait_frames(2)
+  wait_game_frames(2)
 end
 
 local function write_result(ok, message)
@@ -74,7 +91,7 @@ if rb(2) ~= 0 then
 end
 
 tap_p1('Start', 3)
-wait_frames(20)
+wait_game_frames(3)
 if rb(2) ~= 1 then
   write_result(false, 'expected LOBBY state after first START')
   manager.machine:exit()
@@ -82,7 +99,7 @@ if rb(2) ~= 1 then
 end
 
 tap_p1('Start', 3)
-wait_frames(30)
+wait_game_frames(3)
 if rb(2) ~= 2 then
   write_result(false, 'expected BATTLE state after second START')
   manager.machine:exit()
@@ -92,9 +109,9 @@ end
 local x_before = rs16(8)
 clear_p1()
 set_p1('Right', true)
-wait_frames(20)
+wait_game_frames(20)
 clear_p1()
-wait_frames(4)
+wait_game_frames(2)
 local x_after = rs16(8)
 
 if x_after <= x_before then

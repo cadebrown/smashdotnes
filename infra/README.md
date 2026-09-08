@@ -50,7 +50,7 @@ All OpenTofu config for this site lives in one directory:
 ## What this does
 
 * Creates/updates the Cloudflare Pages project `smashdotnes`
-* Configures Cloudflare Pages build command to compile the Rust/Dioxus site
+* Configures Cloudflare Pages to build the ROM and stage the exact static `web/public` tree
 * Binds `smash.cade.io` to the Pages project
 * Creates/updates DNS record for `smash.cade.io`
 
@@ -72,8 +72,10 @@ Do not commit (already ignored in `infra/.gitignore`):
 ## Notes
 
 * No GitHub Actions deployment workflow is required.
+* `.github/workflows/validate.yml` checks the ROM, MAME, FCEUX, browser, and staged site on pushes and pull requests; it retains evidence and does not deploy. Cloudflare's automatic build does not wait for that job. See `docs/automation.md` for the gate and its artifacts.
 * Cloudflare Pages runs `bash infra/cloudflare/build.sh` for deploys.
 * `build.sh` defaults to cc65 tag `V2.19`; override with env var `CC65_TAG` if needed.
+* If the build image has no `cl65`, the fallback builds only the cc65 tools and NES runtime.
 
 ## References
 

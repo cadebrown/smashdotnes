@@ -1,65 +1,96 @@
 # Architecture
 
-SmashDotNES is built to feel simple from the outside and strict on the inside:
-fast build loops, deterministic behavior, and one content model that scales as characters are added.
+SmashDotNES has four explicit boundaries: an NES runtime, a source-to-ROM compiler, observable emulator automation, and a static browser distribution of the same ROM.
 
-## 1. What We Are Building
+## Products
 
-This project has three products that move together:
+- `out/smash.nes`: NROM-256 ROM, 32 KiB PRG plus 8 KiB CHR
+- `nessy`: Rust asset compiler, linker driver, inspectors, and scenario runner
+- `web/public`: static browser player, manual, provenance, and ROM endpoint
+- `site`: clean Cloudflare Pages staging artifact
 
-- a real NES ROM (`out/smash.nes`)
-- a Rust toolchain (`nessy/`) that generates data and validates outputs
-- a web bundle (`web/`) that runs the same ROM in-browser
+## Build flow
 
-The goal is not just a playable prototype. The goal is a repeatable system where new character content
-can be added without touching core tool code.
+```text
+fighter PNG + TOML ──> deduplicated CHR atlas ──> chr.s ──┐
+                     └> frame maps + flip attrs ─> main.c ├─> cl65 ─> smash.nes
+music.toml ───────────> music_data.h ─────> music.c┘
+                                                        │
+                       MAME Lua <── TEST_RAM ABI <──────┤
+                       EmulatorJS <── web sync <────────┘
+```
 
-## 2. System Boundaries
-
-`src/` is the game runtime boundary:
-- C and 6502 assembly
-- character specs + spritesheets under `src/chars/<id>/`
-- generated include artifacts consumed by cc65
-
-`nessy/` is the automation boundary:
-- spec parsing + validation
-- PNG -> CHR and state graph generation
-- ROM build/inspect/test entrypoints
-
-`web/` is the publish boundary:
-- browser play view
-- docs and metadata routes
-- static hosting output
-- clean public routes (`/`, `/play`, `/docs`, `/info`)
-
-`infra/` is the deployment boundary:
-- OpenTofu config for Cloudflare Pages project/domain
-- build command contract used by Pages (`infra/cloudflare/build.sh`)
-
-## 3. Build Flow
-
-The build path is intentionally short and explicit:
+The normal sequence is:
 
 1. `nessy generate all`
 2. `nessy rom build`
-3. `nessy rom inspect --rom out/smash.nes`
-4. `nessy test emulator --backend mame --rom out/smash.nes`
+3. `nessy rom inspect`
+4. `nessy test emulator`
 5. `nessy web sync`
+6. Playwright browser drive plus Rust screenshot inspection
 
-Each step is deterministic and scriptable. This is what keeps CI behavior and local behavior aligned.
-`make build`, `make test-emu`, `make test-web`, and `make web-sync` are thin wrappers over this flow.
+## Runtime data
 
-Runtime/build outputs are intentionally isolated from source:
-- `out/` for ROMs and reports
-- `cfg/` and `nvram/` for emulator-generated state
-- `src/generated/` and `src/chars/*/generated/` for generated includes
+The four tracked character sheets in `src/chars/` provide 14 poses for Mario, Simon, and Tommy and 15 for Rizer on a shared 32x40 canvas. The generator skips transparent 8x8 cells, deduplicates equal tiles, and canonicalizes horizontal and vertical variants so the renderer can recover them with PPU sprite-flip bits. It also compacts each frame into visible `(x, y, tile, attributes)` commands, so the 6502 never scans transparent canvas cells during battle. `src/chr.s` includes the resulting atlas directly. `src/main.c` reads the packed render commands, semantic animation indices, and timing from `roster_runtime.h`.
 
-## 4. Runtime Contract
+The current atlas uses 244 sprite tiles for fighters. Eight effect tiles follow it, leaving four slots free in the 256-tile sprite pattern table. Fireball, axe, and Rizer curl phases recover mirrored source frames with hardware flip bits, the whip repeats its identical middle segment, and the lobby marker shares the hit-spark tile. Background UI, clouds, hills, bricks, and title art use the separate background pattern table.
 
-The runtime exports deterministic state at `$06E0` (`TEST_RAM`) every frame.  
-Automation reads this memory to verify boot progress, state transitions, movement, and long-run stability.
+TOML controls visual frame mapping plus jab/special duration, phase boundaries, and active windows. Those generated timelines drive both the visible pose and collision checks. Movement rules and state transitions remain explicit C code; the exported state-graph bytes are validated build artifacts, not a general runtime state-machine interpreter.
 
-Treat this memory surface as an API:
-- changing offsets should be deliberate
-- docs and emulator scripts should be updated in the same change
-- contract stability is more important than convenience
+The music importer verifies the locked Melee Menu 1 MIDI and maps its source lead handoffs, counterline, bass, and percussion into four NES voices. Original loop metadata fixes the target at 154.113 BPM and 2,995 NTSC frames. The compiler expands named event patterns, converts cumulative MIDI ticks into variable frame durations, and validates voice lengths, loop boundaries, notes, tempo, and pulse duty/volume before emitting `music_data.h`. `music_update()` advances once per game frame and keeps the same theme position across scene changes. Gameplay cues share those APU voices under a short, deterministic priority rule.
+
+## Frame ordering
+
+One battle tick uses a stable order:
+
+1. sample controllers or CPU intent
+2. tick current action timers
+3. apply input and fighter physics
+4. resolve melee and projectile hits against that same action-frame snapshot
+5. advance effects and music
+6. render from the resulting state
+7. wait for vblank and DMA OAM once
+
+Collision and visible attack frames therefore agree. Contact creates a short spark; hitboxes are not rendered in release visuals.
+
+## Observable runtime ABI
+
+The linker reserves `$06E0-$06FF` outside C BSS. The runtime writes this 32-byte block every frame, and MAME scenarios treat it as a versioned API.
+
+| Offset | Meaning |
+| --- | --- |
+| 0-1 | `SN` signature |
+| 2 | scene: title, lobby, battle |
+| 3 | game mode |
+| 4 | frame counter |
+| 5-6 | sampled P1/P2 input |
+| 7 | active projectile count |
+| 8-11 | P1/P2 positions |
+| 12-13 | damage values |
+| 14-19 | battle counters and selection state |
+| 20 | music scene |
+| 21-22 | 16-bit music event index |
+| 23 | most recent sound cue |
+| 24-29 | P1/P2 attack, special, and hitstun timers |
+| 30 | packed rendered frame IDs: P1 low nibble, P2 high nibble |
+| 31 | packed render load: OAM count low six bits, active hit effects high two bits |
+
+Any offset change requires matching Lua and documentation changes.
+
+## Emulator boundary
+
+MAME drives the full automation suite because those Lua scripts use MAME's `manager.machine` device, memory, screen, and input APIs. Each manifest case gets isolated config, NVRAM, artifacts, logs, and a required report path. A separate FCEUX-native Lua smoke test independently verifies mapper loading, the runtime signature, and frame progression without pretending the MAME scripts are portable.
+
+Four fighter TAS cases each select one roster slot, drive idle, every walk/jump/jab/special phase, validate a bounded jump arc, stage an opponent hit, and capture hurt, impact, and recovery. Rizer's case requires all four curl poses; `rizer_aerial_fire` separately proves those poses continue while a live bullet crosses the screen. Each screenshot waits one extra game tick after observing its rendered frame ID so the image matches the OAM data transferred by the next DMA.
+
+The ROM header does not declare battery-backed RAM, so test sessions cannot inherit accidental save state.
+
+## Web boundary
+
+The publish tree is static. EmulatorJS and its NES core are vendored under `web/public/assets`, the version request is redirected locally, and the player does not fetch external scripts or localization at runtime.
+
+Browser readiness comes from EmulatorJS's start event, not `window.load`. Playwright waits for the emulator's running state, sends a real mapped key, compares rendered canvas frames, and confirms focus can leave with Tab. A separate image decoder rejects blank and placeholder captures.
+
+## Deployment boundary
+
+`make ci-pages` wipes only the repository's `site/` staging directory and copies `web/public` into it. Cloudflare never builds a Dioxus debug bundle and does not need a `dx` executable. Tests do not deploy or mutate Cloudflare state.

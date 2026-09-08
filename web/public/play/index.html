@@ -3,28 +3,76 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>play</title>
+    <meta name="theme-color" content="#070808" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="description" content="Play Smash.NES in a local, browser-based NES emulator." />
+    <title>Play Smash.NES</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22><rect width=%2232%22 height=%2232%22 rx=%224%22 fill=%22%23070808%22/><path d=%22M7 9h18v4H11v3h12v4H11v3h14v4H7z%22 fill=%22%23e64b31%22/></svg>" />
     <link rel="stylesheet" href="../main.css" />
   </head>
   <body>
-    <main class="page-shell play-shell">
+    <a class="skip-link" href="#game">Skip to emulator</a>
+    <div class="site-shell play-site-shell">
       <header class="topbar">
-        <a class="brand" href="/">SMASH.NES</a>
-        <nav class="topnav">
-          <a href="/play">Play</a>
-          <a href="/docs">Docs</a>
-          <a href="/info">Info</a>
+        <a class="brand" href="/" aria-label="Smash.NES home">
+          <span class="power-led" aria-hidden="true"></span>
+          <span>SMASH.NES</span>
+        </a>
+        <nav class="topnav" aria-label="Primary navigation">
+          <a href="/play/" aria-current="page">Play</a>
+          <a href="/docs/">Manual</a>
+          <a href="/info/">Build</a>
         </nav>
       </header>
 
-      <div class="emu-frame" id="frame">
-        <div id="game"></div>
-      </div>
+      <main id="main" class="play-main">
+        <header class="play-heading">
+          <div>
+            <p class="eyebrow">Cartridge inserted</p>
+            <h1>Smash.NES</h1>
+          </div>
+          <div class="runtime-state">
+            <span class="runtime-dot" aria-hidden="true"></span>
+            <span id="status" role="status" aria-live="polite">Loading emulator…</span>
+          </div>
+        </header>
 
-      <p id="status" class="status">Loading EmulatorJS…</p>
-      <p class="meta">Click the screen, then use WASD + J/K + Enter + '.</p>
-    </main>
+        <section class="emulator-console" aria-labelledby="emulator-label">
+          <h2 id="emulator-label" class="visually-hidden">NES emulator</h2>
+          <div class="emulator-bezel">
+            <div
+              id="game"
+              role="application"
+              tabindex="0"
+              aria-label="Smash.NES game emulator"
+              aria-describedby="controls-help"
+            ></div>
+          </div>
+          <div class="console-deck" aria-hidden="true">
+            <span>ENTERTAINMENT COMPUTER SYSTEM</span>
+            <div class="deck-lines"><i></i><i></i><i></i><i></i></div>
+          </div>
+        </section>
 
+        <section class="control-card" id="controls-help" aria-label="Game controls">
+          <div>
+            <span class="control-label">Move</span>
+            <span class="key-row"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></span>
+          </div>
+          <div><span class="control-label">Jab</span><kbd>J</kbd></div>
+          <div><span class="control-label">Special</span><kbd>K</kbd></div>
+          <div><span class="control-label">Start</span><kbd>Enter</kbd></div>
+          <p>Click or tap the screen to play. Keyboard focus is never trapped; press <kbd>Tab</kbd> to leave the emulator.</p>
+        </section>
+      </main>
+
+      <footer class="site-footer">
+        <span>Same ROM. Local emulator. No account.</span>
+        <a href="/rom/smash.nes" download>Download ROM</a>
+      </footer>
+    </div>
+
+    <script src="../input-focus.js"></script>
     <script>
       window.EJS_player = "#game";
       window.EJS_core = "nes";
@@ -33,15 +81,39 @@
       window.EJS_pathtodata = "../assets/emulatorjs/data/";
       window.EJS_startOnLoaded = true;
       window.EJS_backgroundColor = "#000000";
-      window.EJS_color = "#ef2f2f";
+      window.EJS_color = "#e64b31";
       window.EJS_threads = false;
       window.EJS_disableDatabases = true;
-      window.EJS_paths = {
-        "version.json": "../assets/emulatorjs/data/version.json"
+      window.EJS_noAutoFocus = true;
+      window.EJS_language = "en-US";
+      window.EJS_disableAutoLang = false;
+      window.EJS_paths = { "version.json": "../assets/emulatorjs/data/version.json" };
+
+      function setRuntimeStatus(message, running) {
+        const status = document.getElementById("status");
+        const state = document.querySelector(".runtime-state");
+        if (status) status.textContent = message;
+        if (state) state.classList.toggle("is-running", Boolean(running));
+      }
+
+      window.EJS_ready = function onEmulatorReady() {
+        setRuntimeStatus("Ready — press Start", false);
       };
 
-      // EmulatorJS defaults to a remote CDN version fetch. Rewrite that request
-      // to the vendored local file so the player works with zero network access.
+      window.EJS_onGameStart = function onGameStart() {
+        window.installKeyboardFocusRelease(window.EJS_emulator);
+        setRuntimeStatus("Running at 60 Hz", true);
+        document.documentElement.dataset.emulator = "running";
+      };
+
+      document.getElementById("game").addEventListener("pointerdown", function focusEmulator() {
+        this.focus({ preventScroll: true });
+      });
+
+      window.addEventListener("keydown", function releaseTabFromEmulator(event) {
+        if (event.key === "Tab") event.stopImmediatePropagation();
+      }, true);
+
       (function patchVersionFetchForOffline() {
         const remoteVersion = "https://cdn.emulatorjs.org/stable/data/version.json";
         const localVersion = "../assets/emulatorjs/data/version.json";
@@ -49,20 +121,15 @@
         const originalFetch = window.fetch.bind(window);
         window.fetch = function patchedFetch(input, init) {
           const requestUrl = typeof input === "string" ? input : (input && input.url) || "";
-          if (requestUrl === remoteVersion) {
-            return originalFetch(localVersion, init);
-          }
+          if (requestUrl === remoteVersion) return originalFetch(localVersion, init);
           return originalFetch(input, init);
         };
       })();
 
-      // EmulatorJS key setup expects control slots 0..29 to exist; sparse maps
-      // can trigger `setupKeys` runtime errors. Keep a full object shape.
-      // NES mapping: BUTTON_1 = B, BUTTON_2 = A.
       window.EJS_defaultControls = {
         0: {
           0: { value: "k", value2: "BUTTON_2" },
-          1: { value: "c", value2: "BUTTON_4" },
+          1: { value: "", value2: "BUTTON_4" },
           2: { value: "single quote", value2: "SELECT" },
           3: { value: "enter", value2: "START" },
           4: { value: "w", value2: "DPAD_UP" },
@@ -70,21 +137,21 @@
           6: { value: "a", value2: "DPAD_LEFT" },
           7: { value: "d", value2: "DPAD_RIGHT" },
           8: { value: "j", value2: "BUTTON_1" },
-          9: { value: "v", value2: "BUTTON_3" },
-          10: { value: "q", value2: "LEFT_TOP_SHOULDER" },
-          11: { value: "e", value2: "RIGHT_TOP_SHOULDER" },
-          12: { value: "tab", value2: "LEFT_BOTTOM_SHOULDER" },
-          13: { value: "r", value2: "RIGHT_BOTTOM_SHOULDER" },
+          9: { value: "", value2: "BUTTON_3" },
+          10: { value: "", value2: "LEFT_TOP_SHOULDER" },
+          11: { value: "", value2: "RIGHT_TOP_SHOULDER" },
+          12: { value: "", value2: "LEFT_BOTTOM_SHOULDER" },
+          13: { value: "", value2: "RIGHT_BOTTOM_SHOULDER" },
           14: { value: "", value2: "LEFT_STICK" },
           15: { value: "", value2: "RIGHT_STICK" },
-          16: { value: "h", value2: "LEFT_STICK_X:+1" },
-          17: { value: "f", value2: "LEFT_STICK_X:-1" },
-          18: { value: "g", value2: "LEFT_STICK_Y:+1" },
-          19: { value: "t", value2: "LEFT_STICK_Y:-1" },
-          20: { value: "l", value2: "RIGHT_STICK_X:+1" },
-          21: { value: "j", value2: "RIGHT_STICK_X:-1" },
-          22: { value: "k", value2: "RIGHT_STICK_Y:+1" },
-          23: { value: "i", value2: "RIGHT_STICK_Y:-1" },
+          16: { value: "", value2: "LEFT_STICK_X:+1" },
+          17: { value: "", value2: "LEFT_STICK_X:-1" },
+          18: { value: "", value2: "LEFT_STICK_Y:+1" },
+          19: { value: "", value2: "LEFT_STICK_Y:-1" },
+          20: { value: "", value2: "RIGHT_STICK_X:+1" },
+          21: { value: "", value2: "RIGHT_STICK_X:-1" },
+          22: { value: "", value2: "RIGHT_STICK_Y:+1" },
+          23: { value: "", value2: "RIGHT_STICK_Y:-1" },
           24: { value: "1" },
           25: { value: "2" },
           26: { value: "3" },
@@ -96,15 +163,10 @@
         2: {},
         3: {}
       };
-
-      window.addEventListener("load", function onLoad() {
-        const status = document.getElementById("status");
-        if (status) status.textContent = "Ready";
-      });
     </script>
     <script
       src="../assets/emulatorjs/data/loader.js"
-      onerror="document.getElementById('status').textContent = 'EmulatorJS failed to load (local assets missing)'"
+      onerror="setRuntimeStatus('Emulator assets failed to load', false)"
     ></script>
   </body>
 </html>

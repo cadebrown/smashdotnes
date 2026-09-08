@@ -1,5 +1,6 @@
+use std::fs::{self, File};
 use std::path::PathBuf;
-use std::process::{Command, ExitStatus};
+use std::process::{Command, ExitStatus, Stdio};
 use std::str::FromStr;
 use std::thread;
 use std::time::{Duration, Instant};
@@ -43,9 +44,11 @@ pub struct HeadlessRun {
     pub rom: PathBuf,
     pub script: Option<PathBuf>,
     pub timeout_seconds: u64,
+    pub audio: bool,
     pub cwd: Option<PathBuf>,
     pub extra_args: Vec<String>,
     pub env: Vec<(String, String)>,
+    pub log_file: Option<PathBuf>,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -54,6 +57,7 @@ pub struct HeadlessOutcome {
     pub command_line: String,
     pub exit_code: Option<i32>,
     pub duration_ms: u128,
+    pub log_file: Option<String>,
 }
 
 /// Runs one emulator process headlessly with timeout enforcement.
@@ -70,9 +74,11 @@ pub fn run_headless(run: &HeadlessRun) -> Result<HeadlessOutcome> {
                 .arg("-cart")
                 .arg(&run.rom)
                 .arg("-video")
-                .arg("none")
-                .arg("-sound")
-                .arg("none")
+                .arg("none");
+            if !run.audio {
+                command.arg("-sound").arg("none");
+            }
+            command
                 .arg("-nothrottle")
                 .arg("-seconds_to_run")
                 .arg(run.timeout_seconds.to_string());
@@ -87,7 +93,15 @@ pub fn run_headless(run: &HeadlessRun) -> Result<HeadlessOutcome> {
         }
         EmulatorBackend::Fceux => {
             let mut command = Command::new("fceux");
-            command.arg("--nogui");
+            command
+                .arg("--no-config")
+                .arg("1")
+                .arg("--loadstate")
+                .arg("10")
+                .arg("--savestate")
+                .arg("10")
+                .arg("--sound")
+                .arg(if run.audio { "1" } else { "0" });
             if let Some(script) = &run.script {
                 command.arg("--loadlua").arg(script);
             }
@@ -101,11 +115,29 @@ pub fn run_headless(run: &HeadlessRun) -> Result<HeadlessOutcome> {
     }
     cmd.env("SDL_VIDEODRIVER", "dummy");
     cmd.env("SDL_AUDIODRIVER", "dummy");
+    if matches!(run.backend, EmulatorBackend::Fceux) {
+        cmd.env("QT_QPA_PLATFORM", "offscreen");
+    }
     for (key, value) in &run.env {
         cmd.env(key, value);
     }
     for arg in &run.extra_args {
         cmd.arg(arg);
+    }
+
+    if let Some(log_file) = &run.log_file {
+        if let Some(parent) = log_file.parent() {
+            fs::create_dir_all(parent).with_context(|| {
+                format!(
+                    "failed to create emulator log directory {}",
+                    parent.display()
+                )
+            })?;
+        }
+        let log = File::create(log_file)
+            .with_context(|| format!("failed to create emulator log {}", log_file.display()))?;
+        cmd.stdout(Stdio::from(log.try_clone()?));
+        cmd.stderr(Stdio::from(log));
     }
 
     let command_line = format!("{:?}", cmd);
@@ -127,6 +159,10 @@ pub fn run_headless(run: &HeadlessRun) -> Result<HeadlessOutcome> {
         command_line,
         exit_code: status.code(),
         duration_ms,
+        log_file: run
+            .log_file
+            .as_ref()
+            .map(|path| path.to_string_lossy().to_string()),
     })
 }
 

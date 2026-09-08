@@ -21,6 +21,7 @@ pub struct CharacterSpec {
 pub struct CharacterInfo {
     pub id: String,
     pub display_name: String,
+    pub runtime_slot: u8,
     #[serde(default)]
     pub franchise: Option<String>,
 }
@@ -50,6 +51,8 @@ pub struct AnimationSpec {
     pub name: String,
     pub frames: Vec<String>,
     pub frame_duration: u8,
+    #[serde(default)]
+    pub minimum_distinct_frames: Option<u8>,
     #[serde(default = "default_looping")]
     pub looping: bool,
 }
@@ -72,6 +75,10 @@ pub struct StateSpec {
     pub cancel_start: Option<u8>,
     #[serde(default)]
     pub cancel_end: Option<u8>,
+    #[serde(default)]
+    pub active_start: Option<u8>,
+    #[serde(default)]
+    pub active_end: Option<u8>,
     #[serde(default)]
     pub transitions: Vec<TransitionSpec>,
 }
@@ -177,6 +184,12 @@ impl CharacterSpec {
         if self.character.id.trim().is_empty() {
             bail!("{}: character.id cannot be empty", spec_path.display());
         }
+        if self.character.runtime_slot >= 64 {
+            bail!(
+                "{}: character.runtime_slot must be less than 64",
+                spec_path.display()
+            );
+        }
         if self.spritesheet.path.trim().is_empty() {
             bail!("{}: spritesheet.path cannot be empty", spec_path.display());
         }
@@ -233,6 +246,17 @@ impl CharacterSpec {
                     animation.name
                 );
             }
+            if let Some(minimum) = animation.minimum_distinct_frames {
+                let maximum = animation.frames.len();
+                if minimum == 0 || minimum as usize > maximum {
+                    bail!(
+                        "{}: animation '{}' minimum_distinct_frames must be between 1 and {}",
+                        spec_path.display(),
+                        animation.name,
+                        maximum
+                    );
+                }
+            }
             if !animation_names.insert(animation.name.as_str()) {
                 bail!(
                     "{}: duplicate animation name '{}'",
@@ -275,6 +299,34 @@ impl CharacterSpec {
             if !state_names.insert(state.name.as_str()) {
                 bail!(
                     "{}: duplicate state name '{}'",
+                    spec_path.display(),
+                    state.name
+                );
+            }
+            if state.cancel_start.is_some() != state.cancel_end.is_some() {
+                bail!(
+                    "{}: state '{}' must set both cancel_start and cancel_end",
+                    spec_path.display(),
+                    state.name
+                );
+            }
+            if state.active_start.is_some() != state.active_end.is_some() {
+                bail!(
+                    "{}: state '{}' must set both active_start and active_end",
+                    spec_path.display(),
+                    state.name
+                );
+            }
+            if state.cancel_start > state.cancel_end {
+                bail!(
+                    "{}: state '{}' cancel window is reversed",
+                    spec_path.display(),
+                    state.name
+                );
+            }
+            if state.active_start > state.active_end {
+                bail!(
+                    "{}: state '{}' active window is reversed",
                     spec_path.display(),
                     state.name
                 );

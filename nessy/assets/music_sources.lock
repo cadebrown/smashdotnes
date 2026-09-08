@@ -1,0 +1,18 @@
+[[source]]
+id = "ssbm_menu_1"
+title = "Super Smash Bros. Melee - Menu Screens (v1.1)"
+sequenced_by = "Dr. Fruitcake"
+page = "https://www.vgmusic.com/file/3196febfd6b9651f9360ccb17deeea3c.html"
+url = "https://www.vgmusic.com/music/console/nintendo/gamecube/ssbm_menu_1.1.mid"
+md5 = "3196febfd6b9651f9360ccb17deeea3c"
+sha256 = "e86a90b92c49c186d0c31cf09879c16ec58f9a18811df8fbe1b357b79c202968"
+cache = "out/reference-music/ssbm_menu_1.1.mid"
+
+[reference]
+title = "Super Smash Bros. Melee - Menu"
+page = "https://www.smashcustommusic.net/song/3418"
+sample_rate = 32000
+loop_start_sample = 229376
+loop_end_sample = 1824052
+loop_samples = 1594676
+tempo_millibpm = 154113

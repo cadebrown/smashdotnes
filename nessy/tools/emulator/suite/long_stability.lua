@@ -24,6 +24,23 @@ local function wrapped_delta(before, after)
   return d
 end
 
+local function wait_game_frames(n)
+  local previous = rb(4)
+  local advanced = 0
+  local polls = 0
+  local poll_limit = n * 32 + 120
+  while advanced < n and polls < poll_limit do
+    wait_frames(1)
+    polls = polls + 1
+    local current = rb(4)
+    if current ~= previous then
+      advanced = advanced + wrapped_delta(previous, current)
+      previous = current
+    end
+  end
+  return advanced >= n
+end
+
 local p1_port = manager.machine.ioport.ports[':ctrl1:joypad:JOYPAD']
 local p1 = {}
 for _, field in pairs(p1_port.fields) do
@@ -50,9 +67,9 @@ end
 local function tap_p1(button, hold_frames)
   clear_p1()
   set_p1(button, true)
-  wait_frames(hold_frames or 2)
+  wait_game_frames(hold_frames or 2)
   clear_p1()
-  wait_frames(2)
+  wait_game_frames(2)
 end
 
 local function write_result(ok, message)
@@ -79,9 +96,9 @@ if rb(2) ~= 0 then
 end
 
 tap_p1('Start', 3)
-wait_frames(20)
+wait_game_frames(3)
 tap_p1('Start', 3)
-wait_frames(30)
+wait_game_frames(3)
 
 if rb(2) ~= 2 then
   write_result(false, 'expected BATTLE state before long run')
@@ -90,14 +107,23 @@ if rb(2) ~= 2 then
 end
 
 local start_frame = rb(4)
-for i = 1, 240 do
+local previous_frame = start_frame
+local advanced = 0
+local polls = 0
+while advanced < 240 and polls < 4800 do
   clear_p1()
-  if (i % 40) < 20 then
+  if (advanced % 40) < 20 then
     set_p1('Right', true)
   else
     set_p1('Left', true)
   end
-  emu.wait_next_frame()
+  wait_frames(1)
+  polls = polls + 1
+  local current_frame = rb(4)
+  if current_frame ~= previous_frame then
+    advanced = advanced + wrapped_delta(previous_frame, current_frame)
+    previous_frame = current_frame
+  end
 end
 clear_p1()
 
@@ -113,12 +139,11 @@ if rb(2) ~= 2 then
 end
 
 local end_frame = rb(4)
-local delta = wrapped_delta(start_frame, end_frame)
-if delta < 200 then
-  write_result(false, string.format('frame counter delta too small: start=%d end=%d delta=%d', start_frame, end_frame, delta))
+if advanced < 240 then
+  write_result(false, string.format('game loop stalled: start=%d end=%d advanced=%d polls=%d', start_frame, end_frame, advanced, polls))
   manager.machine:exit()
   return
 end
 
-write_result(true, string.format('long run stable: start=%d end=%d delta=%d', start_frame, end_frame, delta))
+write_result(true, string.format('long run stable: start=%d end=%d advanced=%d polls=%d', start_frame, end_frame, advanced, polls))
 manager.machine:exit()

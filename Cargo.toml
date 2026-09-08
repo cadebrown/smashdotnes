@@ -1,7 +1,6 @@
 [workspace]
 members = [
     "nessy",
-    "web",
 ]
 resolver = "2"
 

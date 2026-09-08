@@ -1,61 +1,42 @@
-# web
+# Web player
 
-This crate hosts the publish-facing web surface for SmashDotNES.
+`web/public` is both the source and the deployment tree for the Smash.NES site. It is plain HTML/CSS/JavaScript around a vendored EmulatorJS runtime; there is no framework build or debug overlay.
 
-It includes:
-- landing page and docs links (Dioxus app)
-- ROM distribution endpoint (`/rom/smash.nes`)
-- playable browser emulator via EmulatorJS (`/play`)
-- synced technical docs with generated HTML (`/docs`)
-- build metadata surface (`/info`)
-- screenshot/static asset surface (`/snaps/*`)
-
-## Development
-
-From repository root:
+From the repository root:
 
 ```bash
-make web-sync
 make web-dev
-```
-
-Compatibility note:
-- Use `dx` `0.7.2` to match `dioxus = 0.7.2` in `web/Cargo.toml`.
-
-## Build
-
-```bash
-dx build --platform web --package smash-web
-```
-
-For Cloudflare Pages artifact staging from repo root:
-
-```bash
+make test-web
 make ci-pages
 ```
 
-## Automation
+`make web-dev` rebuilds and syncs the ROM, docs, metadata, and available native captures, then serves the static tree on port 8080. `make ci-pages` copies that exact tree into `site/`.
 
-Use the root target:
+The Playwright gate in `web/tests/site.spec.mjs` verifies:
 
-```bash
-make test-web
-```
+- desktop and 390px layouts without horizontal overflow
+- loaded, non-placeholder imagery
+- generated manual and build provenance routes
+- a valid downloadable iNES ROM
+- no external browser requests or console errors
+- EmulatorJS reaches its running state
+- real Start input changes the rendered canvas
+- Tab escapes the emulator focus surface
 
-This performs sync, build, endpoint checks, ROM header check, and screenshots.
-If headless screenshot capture is unavailable in the environment, the suite writes deterministic placeholder PNGs and still validates routes/ROM data.
+Screenshots and traces land under `out/reports/web/`. The Rust screenshot inspector then rejects missing, undersized, uniform, and 1x1 fallback images.
 
 ## Routes
 
-- `/` landing page
-- `/play` web emulator
-- `/docs` docs index
-- `/info` build metadata and links
+- `/`
+- `/play/`
+- `/docs/`
+- `/info/`
+- `/rom/smash.nes`
 
-## Browser Controls
+## Controls
 
 - `WASD`: move
-- `K`: A
-- `J`: B
+- `J`: A / jab
+- `K`: B / special
 - `Enter`: Start
 - `'`: Select

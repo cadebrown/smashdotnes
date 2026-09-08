@@ -1,8 +1,0 @@
-[application]
-name = "smash-web"
-default_platform = "web"
-out_dir = "dist"
-
-[web.app]
-title = "home"
-base_path = "/"

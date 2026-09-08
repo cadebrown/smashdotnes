@@ -1,0 +1,116 @@
+name: Validate
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: validate-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  full-gate:
+    name: ROM, emulators, and browser
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      RUSTUP_TOOLCHAIN: 1.98.1
+      UV_PYTHON: /usr/bin/python3
+      CARGO_TERM_COLOR: always
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24.20.0
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+        with:
+          version: 0.12.10
+          enable-cache: false
+
+      - name: Install Rust
+        run: rustup toolchain install "$RUSTUP_TOOLCHAIN" --profile minimal --component rustfmt
+
+      - uses: taiki-e/install-action@d438492cf8a250514fa2d34b30bc3c0dc37c65ff # v2.87.8
+        with:
+          tool: cargo-nextest@0.9.143
+          fallback: none
+
+      - name: Install the native toolchain and browser dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends cc65 mame fceux
+          echo /usr/games >> "$GITHUB_PATH"
+          npm --prefix web ci --ignore-scripts --no-audit --no-fund
+          cd web
+          npx --no-install playwright install --with-deps chromium
+
+      - name: Record the runner toolchain
+        run: |
+          mkdir -p out/reports/ci
+          {
+            rustc --version
+            cargo --version
+            cargo nextest --version
+            node --version
+            npm --version
+            uv --version
+            uv run python --version
+            dpkg-query --show cc65 mame fceux
+          } 2>&1 | tee out/reports/ci/toolchain.txt
+
+      - name: Fetch locked inputs without rewriting generated sources
+        run: |
+          cargo fetch --locked
+          uv run nessy/tools/music/rebuild_music.py --check
+
+      - name: Check formatting and the full behavior gate
+        env:
+          CARGO_NET_OFFLINE: true
+        run: |
+          cargo fmt --all -- --check
+          make test
+          make test-fceux
+
+      - name: Stage and verify the site artifact
+        env:
+          CARGO_NET_OFFLINE: true
+        run: |
+          make ci-pages
+          cmp out/smash.nes web/public/rom/smash.nes
+          cmp out/smash.nes site/rom/smash.nes
+          git diff --exit-code
+
+      - name: Retain test evidence
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: validation-evidence
+          retention-days: 14
+          path: |
+            out/reports/
+            out/snaps/
+            out/smash.nes
+            out/smash.map
+            out/smash.lbl
+
+      - name: Retain the verified site
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: verified-site
+          path: site/
+          if-no-files-found: error
+          retention-days: 14
