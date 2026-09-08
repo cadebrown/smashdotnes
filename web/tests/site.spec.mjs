@@ -56,6 +56,31 @@ test("landing page is complete on desktop and mobile", async ({ page }) => {
   expect(observed.errors).toEqual([]);
 });
 
+test("landing headline fits with fallback fonts at narrow and desktop widths", async ({ page }) => {
+  await page.goto("/");
+  // Linux runners lack Impact; Arial reproduces the wider fallback on macOS too.
+  await page.addStyleTag({ content: ".hero-copy h1 { font-family: Arial, sans-serif; }" });
+
+  for (const width of [320, 390, 901, 1280, 1440]) {
+    await page.setViewportSize({ width, height: 900 });
+    const overflow = await page.evaluate(() => {
+      const heading = document.querySelector(".hero-copy h1");
+      return {
+        page: document.documentElement.scrollWidth - innerWidth,
+        heading: heading.scrollWidth - heading.clientWidth
+      };
+    });
+    expect(overflow.page, `page overflow at ${width}px`).toBeLessThanOrEqual(1);
+    expect(overflow.heading, `headline overflow at ${width}px`).toBeLessThanOrEqual(1);
+    if (width === 390 || width === 1440) {
+      await page.screenshot({
+        path: path.join(screenshotDir, `home-fallback-${width}.png`),
+        fullPage: true
+      });
+    }
+  }
+});
+
 test("manual and build provenance routes render real data", async ({ page }) => {
   const observed = observePage(page);
   let response = await page.goto("/docs/");

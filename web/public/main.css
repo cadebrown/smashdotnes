@@ -281,6 +281,7 @@ a,
 }
 
 .hero-copy {
+  container-type: inline-size;
   padding: 12px 0;
 }
 
@@ -304,6 +305,11 @@ a,
   line-height: 0.83;
   text-transform: uppercase;
   text-wrap: balance;
+}
+
+.hero-copy h1 {
+  /* Wider system-font fallbacks must fit the column as well as the viewport. */
+  font-size: min(clamp(3.5rem, 8vw, 6.7rem), 15cqi);
 }
 
 .hero-copy h1::first-line {
@@ -881,7 +887,7 @@ kbd {
   }
 
   .hero-copy h1 {
-    font-size: clamp(3rem, 18vw, 5.2rem);
+    font-size: min(clamp(3rem, 18vw, 5.2rem), 15cqi);
   }
 
   .hardware-strip {
