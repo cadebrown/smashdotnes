@@ -259,7 +259,6 @@ struct BuildLink {
 struct GitMetadata {
     branch: Option<String>,
     commit: Option<String>,
-    remote: Option<String>,
     dirty: Option<bool>,
 }
 
@@ -1186,7 +1185,6 @@ fn collect_build_metadata(root: &Path, public: &Path, public_rom: &Path) -> Buil
     let git = GitMetadata {
         branch: capture_command_output(root, "git", &["rev-parse", "--abbrev-ref", "HEAD"]),
         commit: capture_command_output(root, "git", &["rev-parse", "--short", "HEAD"]),
-        remote: capture_command_output(root, "git", &["remote", "get-url", "origin"]),
         dirty: git_dirty_status(root),
     };
 
@@ -1284,4 +1282,45 @@ fn run_command(program: &str, args: &[String], cwd: &Path) -> Result<()> {
     }
 
     Ok(())
+}
+
+#[cfg(test)]
+mod metadata_tests {
+    use super::*;
+
+    #[test]
+    fn public_metadata_excludes_authenticated_remotes() {
+        let directory = tempfile::tempdir().unwrap();
+        let root = directory.path();
+        for args in [
+            vec!["init", "--quiet"],
+            vec![
+                "remote",
+                "add",
+                "origin",
+                "https://fixture-user:fixture-password@example.invalid/repo?token=fixture-query",
+            ],
+        ] {
+            assert!(Command::new("git")
+                .args(args)
+                .current_dir(root)
+                .status()
+                .unwrap()
+                .success());
+        }
+        let public = root.join("public");
+        write_build_metadata(root, &public, &public.join("rom/smash.nes")).unwrap();
+        let raw = fs::read_to_string(public.join("info/build.json")).unwrap();
+        let metadata: serde_json::Value = serde_json::from_str(&raw).unwrap();
+        assert_eq!(metadata["rom_path"], "/rom/smash.nes");
+        assert!(metadata["git"].get("remote").is_none());
+        for private_part in [
+            "fixture-user",
+            "fixture-password",
+            "fixture-query",
+            "example.invalid",
+        ] {
+            assert!(!raw.contains(private_part));
+        }
+    }
 }

@@ -97,6 +97,9 @@ The ROM header does not declare battery-backed RAM, so test sessions cannot inhe
 
 The publish tree is static. EmulatorJS and its NES core are vendored under `web/public/assets`, the version request is redirected locally, and the player does not fetch external scripts or localization at runtime.
 
+Public build metadata includes the source revision and dirty flag, but excludes
+Git remotes: build services can embed credentials in their checkout URLs.
+
 Browser readiness comes from EmulatorJS's start event, not `window.load`. Playwright waits for the emulator's running state, sends a real mapped key, compares rendered canvas frames, and confirms focus can leave with Tab. A separate image decoder rejects blank and placeholder captures.
 
 ## Deployment boundary

@@ -32,6 +32,11 @@ tests, format/typo/workflow checks, and exact site staging pass. Battle cadence
 remains 360 simulation updates per 360 video frames with no stalls. Native impact,
 platform recovery, CPU recovery, and fallback-font screenshots were inspected.
 
+Production verification exposed an authenticated checkout URL in public build
+metadata. The generator now excludes Git remotes entirely, with a synthetic
+credential regression and a browser schema assertion. Prior deployment URLs and
+credential revocation must be treated separately from replacing current content.
+
 The original ROM and regression reports remain under `out/reports/quality-before/`;
 updated comparison evidence is under `out/reports/quality-after/`. Full-gate
 results use the standard `out/reports/emulator/`, `fceux/`, and `web/` paths.

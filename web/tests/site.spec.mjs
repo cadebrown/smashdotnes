@@ -91,7 +91,7 @@ test("manual and build provenance routes render real data", async ({ page }) => 
 
   response = await page.goto("/info/");
   expect(response?.ok()).toBe(true);
-  await expect(page.locator(".kv-row")).toHaveCount(8);
+  await expect(page.locator(".kv-row")).toHaveCount(7);
   await expect(page.locator("#snapshot")).toContainText("SmashDotNES");
   const metadata = await page.request.get("/info/build.json");
   expect(metadata.ok()).toBe(true);
@@ -99,6 +99,7 @@ test("manual and build provenance routes render real data", async ({ page }) => 
     project: "SmashDotNES",
     rom_path: "/rom/smash.nes"
   });
+  expect((await metadata.json()).git).not.toHaveProperty("remote");
   await page.screenshot({ path: path.join(screenshotDir, "build.png"), fullPage: true });
 
   const rom = await page.request.get("/rom/smash.nes");
