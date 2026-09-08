@@ -115,7 +115,10 @@ pub fn run_headless(run: &HeadlessRun) -> Result<HeadlessOutcome> {
     }
     cmd.env("SDL_VIDEODRIVER", "dummy");
     cmd.env("SDL_AUDIODRIVER", "dummy");
-    if matches!(run.backend, EmulatorBackend::Fceux) {
+    // Linux Qt/OpenGL builds can opt into an Xvfb display instead of offscreen.
+    if matches!(run.backend, EmulatorBackend::Fceux)
+        && std::env::var_os("QT_QPA_PLATFORM").is_none()
+    {
         cmd.env("QT_QPA_PLATFORM", "offscreen");
     }
     for (key, value) in &run.env {

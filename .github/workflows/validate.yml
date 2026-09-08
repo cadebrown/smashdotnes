@@ -52,7 +52,7 @@ jobs:
       - name: Install the native toolchain and browser dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install --yes --no-install-recommends cc65 mame fceux
+          sudo apt-get install --yes --no-install-recommends cc65 mame fceux xvfb xauth libgl1-mesa-dri
           echo /usr/games >> "$GITHUB_PATH"
           npm --prefix web ci --ignore-scripts --no-audit --no-fund
           cd web
@@ -83,7 +83,13 @@ jobs:
         run: |
           cargo fmt --all -- --check
           make test
-          make test-fceux
+
+      - name: Check FCEUX with a software OpenGL display
+        env:
+          CARGO_NET_OFFLINE: true
+          QT_QPA_PLATFORM: xcb
+          LIBGL_ALWAYS_SOFTWARE: "1"
+        run: xvfb-run --auto-servernum make test-fceux
 
       - name: Stage and verify the site artifact
         env:
