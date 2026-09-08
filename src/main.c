@@ -1271,6 +1271,23 @@ static u8 ai_input_for(u8 idx) {
     s16 dx = (s16)(foe->x - me->x);
     u8 dist = absdiff8(foe->x, me->x);
 
+    /* Recover toward solid ground before pursuing an opponent offstage. */
+    if (!me->on_ground && (
+        me->x < PLATFORM_LEFT ||
+        me->x > (PLATFORM_RIGHT - FIGHTER_W) ||
+        me->y > GROUND_Y
+    )) {
+        if (me->x < (PLATFORM_LEFT + PLATFORM_WIDTH / 2 - FIGHTER_W / 2)) {
+            in |= BTN_RIGHT;
+        } else {
+            in |= BTN_LEFT;
+        }
+        if (me->jumps_used < 2 && me->vy >= 0 && !(me->prev_control & BTN_UP)) {
+            in |= BTN_UP;
+        }
+        return in;
+    }
+
     if (dx < -6) {
         in |= BTN_LEFT;
     } else if (dx > 6) {
@@ -1349,6 +1366,7 @@ static void update_fighter_input(u8 idx, u8 input) {
 
 static void apply_fighter_physics(Fighter* f) {
     u8 on_platform_x;
+    s16 previous_y = f->y;
 
     if (f->hitstun > 0) {
         --f->hitstun;
@@ -1371,7 +1389,7 @@ static void apply_fighter_physics(Fighter* f) {
     /* Feet should contact platform top exactly at y=(PLATFORM_Y - FIGHTER_H). */
     on_platform_x = (u8)((f->x + FIGHTER_W) > PLATFORM_LEFT && f->x < PLATFORM_RIGHT);
 
-    if (on_platform_x && f->y >= GROUND_Y) {
+    if (on_platform_x && f->vy >= 0 && previous_y <= GROUND_Y && f->y >= GROUND_Y) {
         f->y = GROUND_Y;
         f->vy = 0;
         f->on_ground = 1;
@@ -1420,7 +1438,7 @@ static void update_hit_effects(void) {
     }
 }
 
-static void resolve_melee_hits(u8 attacker_idx) {
+static u8 detect_melee_hit(u8 attacker_idx) {
     Fighter* atk = &fighters[attacker_idx];
     Fighter* def = &fighters[attacker_idx ^ 1];
     s8 dir = atk->facing ? 1 : -1;
@@ -1441,8 +1459,7 @@ static void resolve_melee_hits(u8 attacker_idx) {
         }
 
         if (overlaps(hx, hy, hw, hh, def->x, def->y, FIGHTER_W, FIGHTER_H)) {
-            apply_hit(def, dir, jab_damage[atk->character], -6);
-            atk->attack_hit = 1;
+            return 1;
         }
     }
 
@@ -1462,9 +1479,23 @@ static void resolve_melee_hits(u8 attacker_idx) {
         }
 
         if (overlaps(hx, hy, hw, hh, def->x, def->y, FIGHTER_W, FIGHTER_H)) {
-            apply_hit(def, dir, 11, -8);
-            atk->special_hit = 1;
+            return 2;
         }
+    }
+    return 0;
+}
+
+static void apply_melee_hit(u8 attacker_idx, u8 contact) {
+    Fighter* atk = &fighters[attacker_idx];
+    Fighter* def = &fighters[attacker_idx ^ 1];
+    s8 dir = atk->facing ? 1 : -1;
+
+    if (contact == 1) {
+        atk->attack_hit = 1;
+        apply_hit(def, dir, jab_damage[atk->character], -6);
+    } else if (contact == 2) {
+        atk->special_hit = 1;
+        apply_hit(def, dir, 11, -8);
     }
 }
 
@@ -1767,6 +1798,8 @@ static void update_lobby(void) {
 
 static void update_battle(void) {
     u8 i;
+    u8 p1_contact;
+    u8 p2_contact;
 
     ++battle_frame_counter;
     update_hit_effects();
@@ -1787,8 +1820,11 @@ static void update_battle(void) {
         update_fighter_input(i, in);
     }
 
-    resolve_melee_hits(0);
-    resolve_melee_hits(1);
+    /* Both contacts use the same action snapshot; hitstun cannot give P1 priority. */
+    p1_contact = detect_melee_hit(0);
+    p2_contact = detect_melee_hit(1);
+    if (p1_contact) apply_melee_hit(0, p1_contact);
+    if (p2_contact) apply_melee_hit(1, p2_contact);
 
     update_projectiles();
 

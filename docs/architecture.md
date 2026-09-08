@@ -43,15 +43,22 @@ The music importer verifies the locked Melee Menu 1 MIDI and maps its source lea
 
 One battle tick uses a stable order:
 
-1. sample controllers or CPU intent
-2. tick current action timers
-3. apply input and fighter physics
-4. resolve melee and projectile hits against that same action-frame snapshot
-5. advance effects and music
-6. render from the resulting state
-7. wait for vblank and DMA OAM once
+1. wait for vblank, DMA the previously prepared OAM, and refresh changed HUD tiles
+2. sample controllers, age hit effects, and tick current action timers
+3. choose controller or CPU intent and apply movement, jump, and attack input
+4. detect both melee contacts before applying either hit, then update projectiles
+5. apply fighter physics, landing, hitstun, and KOs; prepare changed damage text
+6. advance music and prepare the next OAM frame from the resulting state
+7. publish the test state and advance the frame counter
 
-Collision and visible attack frames therefore agree. Contact creates a short spark; hitboxes are not rendered in release visuals.
+Collision and visible attack frames therefore agree. Simultaneous active melee
+contacts trade regardless of player number, while a hit still cancels an attack
+that has not reached contact. Contact creates a short spark; hitboxes are not
+rendered in release visuals.
+
+The platform is one-way: landing requires a downward crossing of its top surface.
+Entering its horizontal span from below cannot snap a fighter upward. CPU recovery
+prioritizes steering toward the platform and using available jumps while falling.
 
 ## Observable runtime ABI
 
@@ -65,9 +72,10 @@ The linker reserves `$06E0-$06FF` outside C BSS. The runtime writes this 32-byte
 | 4 | frame counter |
 | 5-6 | sampled P1/P2 input |
 | 7 | active projectile count |
-| 8-11 | P1/P2 positions |
-| 12-13 | damage values |
-| 14-19 | battle counters and selection state |
+| 8-11 | P1 X and Y, signed little-endian 16-bit values |
+| 12-13 | P1 damage and KO count |
+| 14-17 | P2 X and Y, signed little-endian 16-bit values |
+| 18-19 | P2 damage and KO count |
 | 20 | music scene |
 | 21-22 | 16-bit music event index |
 | 23 | most recent sound cue |

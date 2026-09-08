@@ -7,6 +7,7 @@ SmashDotNES is a four-fighter platform brawler that runs as a real mapper-0 NES 
 - Two-player, player-vs-CPU, and CPU-vs-CPU battles
 - Mario, Simon, and Tommy with 14 editable poses; Rizer has a fifteenth curl pose
 - Jabs, character specials, projectiles, jumping, knockback, damage, and KOs
+- One-way platform landings, simultaneous melee trades, and CPU offstage recovery
 - A source-speed four-voice NES port of Super Smash Bros. Melee's Menu 1 theme
 - Contact-only hit sparks and synchronized simulation/render action frames
 - Data-driven PNG/TOML fighter visuals and animation frame selection

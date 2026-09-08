@@ -15,6 +15,14 @@ for _, field in pairs(p1_port.fields) do
   end
 end
 
+local p2 = {}
+for _, field in pairs(manager.machine.ioport.ports[':ctrl2:joypad:JOYPAD'].fields) do
+  local name = tostring(field.name)
+  if string.sub(name, 1, 3) == 'P2 ' and p2[name] == nil then
+    p2[name] = field
+  end
+end
+
 local function rb(off)
   return prg:read_u8(BASE + off)
 end
@@ -63,6 +71,7 @@ end
 
 local function finish(ok, message)
   clear_p1()
+  for _, field in pairs(p2) do field:set_value(0) end
   local report = io.open(out_file, 'w')
   if report then
     report:write((ok and 'PASS' or 'FAIL') .. '\n')
@@ -101,6 +110,19 @@ wait_game_frames(2)
 screen:snapshot(artifact_dir .. '/02_approach.png')
 
 local damage_before = rb(18)
+-- Simon's jab starts more slowly than Mario's: start the defender first and
+-- prove it has a live action to cancel before Mario's hit connects.
+p2['P2 A']:set_value(1)
+for _ = 1, 12 do
+  wait_game_frames(1)
+  if rb(27) > 0 then break end
+end
+p2['P2 A']:set_value(0)
+local defender_timer_before = rb(27)
+if defender_timer_before == 0 then
+  finish(false, 'defender action did not start; cancellation would be vacuous')
+  return
+end
 clear_p1()
 p1['P1 A']:set_value(1)
 for _ = 1, 12 do
@@ -116,7 +138,6 @@ for _ = 1, 16 do
   end
   wait_game_frames(1)
 end
-screen:snapshot(artifact_dir .. '/03_impact.png')
 local damage_after = rb(18)
 
 if damage_after <= damage_before then
@@ -140,6 +161,9 @@ if rb(28) ~= 0 or rb(27) ~= 0 then
   return
 end
 
+wait_game_frames(2)
+screen:snapshot(artifact_dir .. '/03_impact.png')
+
 wait_game_frames(20)
 screen:snapshot(artifact_dir .. '/04_recovery.png')
 if (rb(31) >> 6) ~= 0 then
@@ -148,9 +172,10 @@ if (rb(31) >> 6) ~= 0 then
 end
 
 finish(true, string.format(
-  'jab impact synchronized: damage=%d->%d cue=%d max_oam=%d',
+  'jab impact synchronized: damage=%d->%d cancelled_defender_jab=%d->0 cue=%d max_oam=%d',
   damage_before,
   damage_after,
+  defender_timer_before,
   rb(23),
   rb(31) & 0x3f
 ))

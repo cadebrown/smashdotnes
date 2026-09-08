@@ -34,6 +34,15 @@ The target compiles three separate mapper-0 ROMs, drives each through title, lob
 
 The suite in `nessy/tools/emulator/suite/suite.toml` adds boot signature, frame progression, injected movement, four-voice APU activity, contact/damage/spark synchronization, all four fighters' authored animation poses, exact loaded-battle cadence, and longer-run responsiveness checks. `animation_states` selects each fighter, drives every required walk, jump, jab, and special pose, reads the rendered frame ID from the test ABI, and saves the distinct native frames. `battle_cadence` requires 360 simulation and music updates in 360 video frames while both fighters attack, jump, hit, and spawn projectiles. The manifest is the source of discovery; Rust does not contain a second hard-coded case list.
 
+The gameplay quality scenarios use controller input and the published ABI, without
+writing fighter state. `platform_landing` tests both edges: falling inward stays
+below the platform, while recovery jumps pass through and land from above.
+`melee_trade` starts identical jabs together and requires equal damage, two impact
+effects, cancelled actions, and clean recovery. `cpu_recovery` baits a CPU offstage
+and requires an inward jump and landing without a KO. `combat_presentation` first
+proves the defender's jab is active before testing its cancellation. These cases
+retain native screenshots and per-frame CSV traces.
+
 For the per-character visual audit:
 
 ```bash
@@ -115,6 +124,7 @@ The command rebuilds and syncs the ROM, installs the pinned Playwright package, 
 
 - desktop landing page and real title-screen asset
 - 390x844 responsive layout and overflow check
+- fallback-font headline sizing at narrow and desktop widths, including systems without Impact
 - generated manual and build-provenance data
 - downloadable iNES magic bytes
 - vendored EmulatorJS boot to its actual running state

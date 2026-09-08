@@ -43,6 +43,24 @@ timeout_seconds = 75
 description = "Drives every fighter through every authored idle, walk, jump, jab, and special pose."
 
 [[case]]
+id = "platform_landing"
+script = "platform_landing.lua"
+timeout_seconds = 40
+description = "Checks both edges reject landing from below, allow rising through the platform, and land only from above."
+
+[[case]]
+id = "melee_trade"
+script = "melee_trade.lua"
+timeout_seconds = 20
+description = "Requires simultaneous mirror jabs to trade damage, cancel both actions, and recover without repeated hits."
+
+[[case]]
+id = "cpu_recovery"
+script = "cpu_recovery.lua"
+timeout_seconds = 30
+description = "Baits a CPU offstage through real inputs and requires an inward recovery jump and landing without a KO."
+
+[[case]]
 id = "tas_mario"
 script = "tas_mario.lua"
 timeout_seconds = 60
