@@ -1,0 +1,6 @@
+---
+import SiteLayout from '../layouts/SiteLayout.astro';
+import metadata from '../../public/info/build.json';
+const rows=[['Project',metadata.project],['Commit',metadata.git.commit],['Branch',metadata.git.branch],['Uncommitted changes',metadata.git.dirty?'Yes':'None'],['ROM',metadata.rom_path]];
+---
+<SiteLayout title="Build details"><header class="page-intro"><p class="eyebrow">The cartridge</p><h1>Build details.</h1><p>Source revision and artifact information for this version of the site.</p></header>{rows.map(([key,value])=><div class="build-row"><span>{key}</span><span>{value}</span></div>)}<details><summary>View raw build data</summary><pre class="raw-json">{JSON.stringify(metadata,null,2)}</pre></details></SiteLayout>

@@ -1,0 +1,11 @@
+---
+import { sectionEntries } from '../../data/sections';
+import RedirectPage from '../../components/RedirectPage.astro';
+export async function getStaticPaths() {
+  const player = (await sectionEntries('book')).map(entry=>({params:{chapter:entry.id.split('/')[1]},props:{target:`/book/#${entry.id.split('/')[1]}`}}));
+  const technical = ['architecture','physics','contact','rendering','audio'].map(chapter=>({params:{chapter},props:{target:`/docs/${chapter}/`}}));
+  return [...player,...technical];
+}
+const {target}=Astro.props;
+---
+<RedirectPage target={target}/>

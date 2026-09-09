@@ -1,0 +1,11 @@
+---
+import SiteNav from './SiteNav.astro';
+import '../styles/navigation.css';
+---
+<div class="site-header-content">
+  <div class="header-row">
+    <a class="site-brand" href="/" aria-label="Smash.NES home">SMASH<span>.NES</span></a>
+    <div class="header-tools"><slot /></div>
+  </div>
+  <SiteNav />
+</div>

@@ -1,0 +1,31 @@
+<figure class="pipeline">
+  <div class="pipeline-flow" role="img" aria-label="SmashDotNES source-to-player build pipeline: fighter PNG and TOML plus music TOML become generated C and CHR, then smash.nes, then the web player.">
+    <div class="pipeline-step"><span>01 · Source</span><strong>Fighter PNG + TOML<br/>Music TOML</strong></div>
+    <div class="pipeline-arrow" aria-hidden="true"><code>nessy generate</code><span>→</span></div>
+    <div class="pipeline-step"><span>02 · Generate</span><strong>C + CHR</strong></div>
+    <div class="pipeline-arrow" aria-hidden="true"><code>cl65</code><span>→</span></div>
+    <div class="pipeline-step"><span>03 · Build</span><strong>smash.nes</strong></div>
+    <div class="pipeline-arrow" aria-hidden="true"><code>web sync</code><span>→</span></div>
+    <div class="pipeline-step"><span>04 · Play</span><strong>Web player</strong></div>
+  </div>
+  <figcaption>Build one ROM. Test it in emulators, then copy that same file to the web player. These checks cover the emulator and browser, not physical hardware or deployment.</figcaption>
+</figure>
+<style>
+  .pipeline{container-type:inline-size;background-image:var(--grit);border:1px solid var(--sl-color-gray-4);border-bottom:4px solid var(--ember,#ed603e);margin:2rem 0;padding:1rem}
+  .pipeline-flow{display:grid;grid-template-columns:1.35fr .6fr 1fr .4fr 1fr .5fr 1fr;align-items:center;gap:8px}
+  .pipeline-step{display:flex;flex-direction:column;justify-content:center;gap:10px;min-height:105px;padding:10px;border:1px solid var(--gold,#d6af56);background:var(--diagram-bg);color:var(--sl-color-white)}
+  .pipeline-step>span{color:var(--gold,#d6af56);font:400 10px/1.5 var(--mono);text-transform:uppercase}
+  .pipeline-step strong{font:700 13px/1.6 Arial,sans-serif}
+  .pipeline-arrow{text-align:center;color:var(--ember,#ed603e)}
+  .pipeline-arrow code{display:block;padding:0;background:none;color:var(--sl-color-gray-2);font:400 9px/1.5 var(--mono)}
+  .pipeline-arrow span{display:block;font:400 26px/1 Arial,sans-serif}
+  .pipeline figcaption{font-size:.85rem;line-height:1.6;color:var(--sl-color-gray-2);margin-top:1rem}
+  @container(max-width:650px){
+    .pipeline-flow{grid-template-columns:1fr;gap:10px}
+    .pipeline-step{min-height:0;padding:14px 18px;gap:5px}
+    .pipeline-step strong{font-size:16px}
+    .pipeline-arrow{display:flex;align-items:center;justify-content:center;gap:12px}
+    .pipeline-arrow span{rotate:90deg}
+    .pipeline-arrow code{font-size:11px}
+  }
+</style>

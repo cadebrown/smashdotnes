@@ -3,77 +3,164 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#070808" />
-    <meta name="color-scheme" content="dark" />
-    <meta
-      name="description"
-      content="A four-fighter platform brawler built for real NES hardware limits. Play the ROM in your browser."
-    />
-    <title>Smash.NES — a real NES platform brawler</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22><rect width=%2232%22 height=%2232%22 rx=%224%22 fill=%22%23070808%22/><path d=%22M7 9h18v4H11v3h12v4H11v3h14v4H7z%22 fill=%22%23f04b2f%22/></svg>" />
+    <meta name="theme-color" content="#e6e7e2" />
+    <meta name="color-scheme" content="light" />
+    <meta name="description" content="Play Smash.NES, a four-character NES platform fighter, in your browser." />
+    <title>Smash.NES — Play</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22><rect width=%2232%22 height=%2232%22 fill=%22%23a72d38%22/><path d=%22M7 7h18v4H11v3h14v11H7v-4h14v-3H7z%22 fill=%22white%22/></svg>" />
     <link rel="stylesheet" href="/main.css" />
   </head>
   <body>
-    <a class="skip-link" href="#main">Skip to game</a>
+    <a class="skip-link" href="#game">Skip to game</a>
     <div class="site-shell">
       <header class="topbar">
-        <a class="brand" href="/" aria-label="Smash.NES home">
-          <span class="power-led" aria-hidden="true"></span>
-          <span>SMASH.NES</span>
-        </a>
-        <nav class="topnav" aria-label="Primary navigation">
-          <a href="/play/">Play</a>
-          <a href="/docs/">Manual</a>
-          <a href="/info/">Build</a>
-        </nav>
+        <h1 class="brand">SMASH.NES</h1>
+        <a class="download-link" href="/rom/smash.nes" download>Download ROM</a>
       </header>
 
-      <main id="main" class="home-main">
-        <section class="console-hero" aria-labelledby="hero-title">
-          <div class="console-screen-wrap">
-            <div class="screen-label">
-              <span>NTSC · 60 HZ</span>
-              <span>ATTRACT MODE</span>
-            </div>
-            <div class="console-screen">
-              <img
-                src="/snaps/01_title.png"
-                width="256"
-                height="240"
-                alt="Smash.NES title screen with red, green, orange, and white pixel lettering"
-              />
-              <span class="screen-glass" aria-hidden="true"></span>
-            </div>
-            <div class="console-vents" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
-          </div>
+      <main id="main" class="play-main">
+        <div class="game-frame">
+          <div id="game" role="application" tabindex="0"
+            aria-label="Smash.NES game emulator" aria-describedby="controls-help"></div>
+        </div>
+        <p id="status" class="game-status" role="status" aria-live="polite">Loading game…</p>
+        <noscript><p>Enable JavaScript to play here, or download the ROM for your NES emulator.</p></noscript>
 
-          <div class="hero-copy">
-            <p class="eyebrow">Mapper 0 · 32 KB PRG · 8 KB CHR</p>
-            <h1 id="hero-title">Four legends.<br />One tiny cartridge.</h1>
-            <p class="hero-lede">
-              A fast platform fighter rebuilt around actual NES limits, with a source-speed four-voice Melee Menu 1 port,
-              deterministic combat, and no downloads between you and the first punch.
-            </p>
-            <a class="power-button" href="/play/">
-              <span class="power-icon" aria-hidden="true"></span>
-              Power on
-            </a>
-            <p class="control-line"><kbd>WASD</kbd> move · <kbd>J</kbd> jab · <kbd>K</kbd> special · <kbd>Enter</kbd> start</p>
-          </div>
-        </section>
-
-        <section class="hardware-strip" aria-label="Cartridge features">
-          <article><strong>04</strong><span>fighters</span></article>
-          <article><strong>03</strong><span>modes</span></article>
-          <article><strong>60</strong><span>frames / sec</span></article>
-          <article><strong>01</strong><span>real ROM</span></article>
+        <section id="controls-help" class="controls" aria-label="Game controls">
+          <p class="keyboard-hint">Click the game, then press <kbd>Enter</kbd> to start. <kbd>Tab</kbd> leaves the game.</p>
+          <p class="touch-hint">Tap Start to begin. A jabs; B uses your special.</p>
+          <ul class="keyboard-controls">
+            <li><kbd>A</kbd><kbd>D</kbd> Move</li>
+            <li><kbd>W</kbd> Jump</li>
+            <li><kbd>S</kbd> Crouch</li>
+            <li><kbd>J</kbd> Jab</li>
+            <li><kbd>K</kbd> Special</li>
+          </ul>
+          <details class="play-help">
+            <summary>How to play</summary>
+            <p>Build damage, then knock your opponent off the stage. Jump again in the air to double jump.</p>
+            <p>Use the controller icon to change keys or set up a gamepad. The restart icon returns to the title screen.</p>
+          </details>
         </section>
       </main>
 
       <footer class="site-footer">
-        <span>Built under NROM-256 constraints.</span>
-        <a href="/rom/smash.nes" download>Download ROM</a>
+        <a href="/docs/">Manual</a>
+        <a href="/info/">Build</a>
+        <a href="https://github.com/cadebrown/smashdotnes">Source</a>
       </footer>
     </div>
+
+    <script src="/input-focus.js"></script>
+    <script>
+      window.EJS_player = "#game";
+      window.EJS_core = "nes";
+      window.EJS_gameUrl = "/rom/smash.nes";
+      window.EJS_gameName = "SmashDotNES";
+      window.EJS_pathtodata = "/assets/emulatorjs/data/";
+      window.EJS_startOnLoaded = true;
+      window.EJS_backgroundColor = "#000000";
+      window.EJS_color = "#a72d38";
+      window.EJS_threads = false;
+      window.EJS_disableDatabases = true;
+      window.EJS_noAutoFocus = true;
+      window.EJS_language = "en-US";
+      window.EJS_disableAutoLang = false;
+      window.EJS_paths = { "version.json": "/assets/emulatorjs/data/version.json" };
+
+      function setRuntimeStatus(message) {
+        document.getElementById("status").textContent = message;
+      }
+
+      window.EJS_Buttons = {
+        restart: true, playPause: true, mute: true, volumeSlider: true,
+        gamepad: true, fullscreen: true,
+        settings: false, saveState: false, loadState: false,
+        saveSavFiles: false, loadSavFiles: false, cheat: false,
+        cacheManager: false, netplay: false, diskButton: false,
+        exitEmulation: false, screenshot: false, screenRecord: false,
+        quickSave: false, quickLoad: false
+      };
+
+      window.EJS_VirtualGamepadSettings = [
+        { type: "button", text: "B", id: "b", location: "right", right: 75, top: 70, bold: true, input_value: 0 },
+        { type: "button", text: "A", id: "a", location: "right", right: 5, top: 70, bold: true, input_value: 8 },
+        { type: "dpad", id: "dpad", location: "left", left: "50%", right: "50%", joystickInput: false, inputValues: [4, 5, 6, 7] },
+        { type: "button", text: "Start", id: "start", location: "center", left: 60, fontSize: 15, block: true, input_value: 3 },
+        { type: "button", text: "Select", id: "select", location: "center", left: -5, fontSize: 15, block: true, input_value: 2 }
+      ];
+
+      window.EJS_onGameStart = function onGameStart() {
+        const emulator = window.EJS_emulator;
+        window.installKeyboardFocusRelease(emulator);
+        // This vendored version ignores contextMenu in EJS_Buttons.
+        const menu = emulator.elements.bottomBar.contextMenu?.[0];
+        if (menu) menu.hidden = true;
+        setRuntimeStatus("Game ready");
+        document.documentElement.dataset.emulator = "running";
+      };
+
+      document.getElementById("game").addEventListener("pointerdown", function focusEmulator() {
+        this.focus({ preventScroll: true });
+      });
+
+      window.addEventListener("keydown", function releaseTabFromEmulator(event) {
+        if (event.key === "Tab") event.stopImmediatePropagation();
+      }, true);
+
+      (function patchVersionFetchForOffline() {
+        const remoteVersion = "https://cdn.emulatorjs.org/stable/data/version.json";
+        const localVersion = "/assets/emulatorjs/data/version.json";
+        if (typeof window.fetch !== "function") return;
+        const originalFetch = window.fetch.bind(window);
+        window.fetch = function patchedFetch(input, init) {
+          const requestUrl = typeof input === "string" ? input : (input && input.url) || "";
+          if (requestUrl === remoteVersion) return originalFetch(localVersion, init);
+          return originalFetch(input, init);
+        };
+      })();
+
+      window.EJS_defaultControls = {
+        0: {
+          0: { value: "k", value2: "BUTTON_2" },
+          1: { value: "", value2: "BUTTON_4" },
+          2: { value: "single quote", value2: "SELECT" },
+          3: { value: "enter", value2: "START" },
+          4: { value: "w", value2: "DPAD_UP" },
+          5: { value: "s", value2: "DPAD_DOWN" },
+          6: { value: "a", value2: "DPAD_LEFT" },
+          7: { value: "d", value2: "DPAD_RIGHT" },
+          8: { value: "j", value2: "BUTTON_1" },
+          9: { value: "", value2: "BUTTON_3" },
+          10: { value: "", value2: "LEFT_TOP_SHOULDER" },
+          11: { value: "", value2: "RIGHT_TOP_SHOULDER" },
+          12: { value: "", value2: "LEFT_BOTTOM_SHOULDER" },
+          13: { value: "", value2: "RIGHT_BOTTOM_SHOULDER" },
+          14: { value: "", value2: "LEFT_STICK" },
+          15: { value: "", value2: "RIGHT_STICK" },
+          16: { value: "", value2: "LEFT_STICK_X:+1" },
+          17: { value: "", value2: "LEFT_STICK_X:-1" },
+          18: { value: "", value2: "LEFT_STICK_Y:+1" },
+          19: { value: "", value2: "LEFT_STICK_Y:-1" },
+          20: { value: "", value2: "RIGHT_STICK_X:+1" },
+          21: { value: "", value2: "RIGHT_STICK_X:-1" },
+          22: { value: "", value2: "RIGHT_STICK_Y:+1" },
+          23: { value: "", value2: "RIGHT_STICK_Y:-1" },
+          24: { value: "1" },
+          25: { value: "2" },
+          26: { value: "3" },
+          27: { value: "add" },
+          28: { value: "space" },
+          29: { value: "subtract" }
+        },
+        1: {},
+        2: {},
+        3: {}
+      };
+    </script>
+    <script
+      src="/assets/emulatorjs/data/loader.js"
+      onerror="setRuntimeStatus('Could not load the game. Reload this page to try again.')"
+    ></script>
   </body>
 </html>

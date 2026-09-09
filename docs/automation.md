@@ -120,12 +120,12 @@ It captures 44 native title, idle, walk, jump, punch, and kick frames plus a con
 make test-web
 ```
 
-The command rebuilds and syncs the ROM, installs the pinned Playwright package, serves `web/public`, and drives:
+The command rebuilds and syncs the ROM, installs the locked web dependencies, checks and builds Astro/Starlight, serves `web/dist`, and drives:
 
-- desktop landing page and real title-screen asset
-- 390x844 responsive layout and overflow check
-- fallback-font headline sizing at narrow and desktop widths, including systems without Impact
-- generated manual and build-provenance data
+- fighter cover, dedicated player, and real native captures
+- responsive layouts from 320px phones through 1440px desktops
+- Book, Docs, and Blog routes, section navigation, search, interactive labs, and design directions
+- build-provenance data and legacy route redirects
 - downloadable iNES magic bytes
 - vendored EmulatorJS boot to its actual running state
 - keyboard Start input with a changed canvas frame

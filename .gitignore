@@ -34,3 +34,8 @@
 *.log
 .vscode/
 .idea/
+
+# Astro generated assets and type cache
+/web/.astro/
+/web/.public/
+/web/.playwright-cli/

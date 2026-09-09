@@ -3,8 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#070808" />
-    <meta name="color-scheme" content="dark" />
+    <meta name="theme-color" content="#e6e7e2" />
+    <meta name="color-scheme" content="light" />
     <meta name="description" content="Technical manual for building, testing, and extending Smash.NES." />
     <title>Manual — Smash.NES</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22><rect width=%2232%22 height=%2232%22 rx=%224%22 fill=%22%23070808%22/><path d=%22M7 9h18v4H11v3h12v4H11v3h14v4H7z%22 fill=%22%23e64b31%22/></svg>" />
@@ -15,46 +15,30 @@
     <main id="main" class="page-shell">
       <header class="topbar">
         <a class="brand" href="/" aria-label="Smash.NES home">
-          <span class="power-led" aria-hidden="true"></span>
           <span>SMASH.NES</span>
         </a>
         <nav class="topnav" aria-label="Primary navigation">
-          <a href="/play/">Play</a>
+          <a href="/">Play</a>
           <a href="/docs/" aria-current="page">Manual</a>
           <a href="/info/">Build</a>
         </nav>
       </header>
 
       <section class="panel page-copy">
-        <p class="eyebrow">Technical manual</p>
         <h1 class="page-title">Manual</h1>
-        <p class="muted">
-          Four focused guides. Read them in order and you can navigate the whole project quickly.
-        </p>
+        <p class="muted">Build, test, and change the game.</p>
 
-        <h2>1. <a href="architecture/">Architecture</a></h2>
-        <p>
-          The map. Understand the subsystem boundaries, the build flow, and the runtime contract that
-          keeps behavior testable.
-        </p>
+        <h2><a href="architecture/">Architecture</a></h2>
+        <p>Subsystems, build flow, and the runtime test interface.</p>
 
-        <h2>2. <a href="automation/">Automation</a></h2>
-        <p>
-          The guardrails. See how emulator and web checks run headlessly, where reports land, and how
-          to debug failures fast.
-        </p>
+        <h2><a href="automation/">Automation</a></h2>
+        <p>Run emulator and browser checks, inspect reports, and debug failures.</p>
 
-        <h2>3. <a href="spec-reference/">Spec Reference</a></h2>
-        <p>
-          The content model. Learn how fighter TOML specs, sprite sheets, and generated artifacts fit
-          together.
-        </p>
+        <h2><a href="spec-reference/">Spec reference</a></h2>
+        <p>Fighter specs, sprite sheets, and generated assets.</p>
 
-        <h2>4. <a href="implementation-notes/">Implementation Notes</a></h2>
-        <p>
-          The practical details. Review runtime behavior, NES constraints, and the packaging model for
-          the web player.
-        </p>
+        <h2><a href="implementation-notes/">Implementation notes</a></h2>
+        <p>Runtime behavior, NES limits, and web packaging.</p>
       </section>
     </main>
   </body>

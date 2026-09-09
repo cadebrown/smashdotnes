@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="280" height="220" viewBox="0 0 280 220">
+  <defs><filter id="dust"><feTurbulence baseFrequency=".72" numOctaves="2" seed="41" stitchTiles="stitch"/><feColorMatrix type="saturate" values="0"/><feComponentTransfer><feFuncR type="discrete" tableValues="0 0 0 1 1"/><feFuncG type="discrete" tableValues="0 0 0 1 1"/><feFuncB type="discrete" tableValues="0 0 0 1 1"/><feFuncA type="linear" slope=".34"/></feComponentTransfer></filter></defs>
+  <path d="M0 0h280v220H0z" filter="url(#dust)"/>
+  <g fill="#151513" opacity=".8"><path d="M28 56h3v1h-3zm90 65h1v3h-1zm80-44h3v1h-3zM52 188h2v2h-2zm193-42h1v3h-1zm-44 57h4v1h-4zM169 15h2v1h-2zm-159 87h1v2h-1zm102 69h2v1h-2z"/></g>
+</svg>

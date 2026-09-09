@@ -24,8 +24,8 @@ Required:
 For the full test drive:
 
 - MAME (`mame`) for scripted emulator automation
-- Node.js and npm for Playwright browser automation
-- `uv` for the local static server
+- Node.js 24.20+ and npm for Astro/Starlight and Playwright browser automation
+- `uv` for scripts and the browser-test static server
 - ImageMagick (`magick`) for the title-direction comparison sheet
 
 FCEUX is the independent native-core check. The full gameplay/TAS suite uses MAME's machine API; `make test-fceux` runs a separate FCEUX-native Lua boot and frame-progression probe.
@@ -56,7 +56,7 @@ make test
 - `make test-emu`: run every case in `nessy/tools/emulator/suite/suite.toml`
 - `make test-web`: drive desktop, mobile, docs, metadata, and a live EmulatorJS session
 - `make test`: run Rust, native emulator, and browser gates
-- `make web-dev`: sync and serve `web/public` at `http://127.0.0.1:8080`
+- `make web-dev`: sync the ROM and start Astro at `http://127.0.0.1:8080`
 - `make ci-pages`: stage the exact static deployment tree in `site/`
 
 ## Repository map
@@ -72,7 +72,10 @@ nessy/
   tools/emulator/       capture driver and manifest-driven MAME scenarios
   tools/web/            browser gate entrypoint
 web/
-  public/               exact static publish source and vendored EmulatorJS
+  src/                  Astro pages, Starlight MDX chapters, learning extensions
+  public/               source assets, legacy HTML, and vendored EmulatorJS
+  scripts/              stage only runtime assets into ignored .public/
+  dist/                 generated static site, copied into site/ for deployment
   tests/                Playwright interaction and screenshot tests
 docs/                   architecture, automation, schema, implementation notes
 infra/cloudflare/       Cloudflare Pages build/provisioning contract
@@ -130,17 +133,24 @@ Useful evidence:
 
 ## Web routes
 
-- `/`: cartridge landing page
-- `/play/`: offline EmulatorJS player
-- `/docs/`: generated technical manual
+- `/`: fighter cover and links into the site
+- `/play/`: offline EmulatorJS player, controls, and ROM download
+- `/book/`: ordered player and implementation chapters with interactive labs
+- `/docs/`: build, assets, testing, and website reference
+- `/blog/`: dated development articles
+- `/design/`: four switchable retro themes (A/B/C/D), each with poster, roster, and manual views
 - `/info/`: source and ROM build provenance
 - `/rom/smash.nes`: downloadable ROM
+
+Main navigation contains only Play, Book, Docs, and Blog; the logo links home.
+Former `/guide/`, `/technical/`, `/devlog/`, and `/emulator/` URLs redirect to
+their current destinations, preserving queries and fragments.
 
 Keyboard controls are `WASD` to move, `J` for A/jab, `K` for B/special, `Enter` for Start, and `'` for Select. Clicking the screen focuses input; Tab navigates out normally. Held keyboard controls release when focus leaves the player, the window loses focus, or the tab is hidden.
 
 ## Deployment
 
-`make ci-pages` builds the ROM, syncs docs/metadata and any current captures, and copies only `web/public` into `site/`. A tracked title capture is used when MAME output is unavailable in the build environment. There is no Dioxus/WASM shell or `dx` dependency in the publish path. Cloudflare Pages uses `bash infra/cloudflare/build.sh` and publishes `site/`.
+`make ci-pages` builds the ROM, syncs metadata, installs the locked web dependencies, runs Astro checks, and builds the Starlight site. It copies `web/dist` into `site/` and verifies exact staging parity. The asset stage uses tracked native captures, so website builds do not depend on an emulator being available. Legacy HTML in `web/public` is retained for reference and excluded from Astro's public asset stage. Cloudflare Pages uses `bash infra/cloudflare/build.sh` and publishes `site/`.
 
 No deployment is performed by local test commands.
 

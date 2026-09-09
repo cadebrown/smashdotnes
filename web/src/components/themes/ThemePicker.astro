@@ -1,0 +1,15 @@
+---
+import { artThemes } from '../../data/art-themes';
+
+interface Props { expanded?: boolean; }
+const { expanded = false } = Astro.props;
+---
+
+<div class:list={['art-theme-picker', { 'art-theme-picker--expanded': expanded }]} role="radiogroup" aria-label="Visual theme">
+  {artThemes.map((theme) => (
+    <button type="button" class="art-theme-choice" data-art-theme-control={theme.id} role="radio" aria-label={`${theme.id.toUpperCase()} · ${theme.name}`} aria-checked={theme.id === 'a' ? 'true' : 'false'} tabindex={theme.id === 'a' ? '0' : '-1'}>
+      <span class="art-theme-choice__letter" aria-hidden="true">{theme.id.toUpperCase()}</span>
+      {expanded ? <span class="art-theme-choice__copy"><b>{theme.name}</b><small>{theme.description}</small></span> : <span class="sr-only">{theme.name}</span>}
+    </button>
+  ))}
+</div>

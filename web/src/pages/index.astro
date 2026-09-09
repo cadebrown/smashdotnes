@@ -1,0 +1,14 @@
+---
+import SiteLayout from '../layouts/SiteLayout.astro';
+import FighterRoster from '../components/design/FighterRoster.astro';
+import { sectionEntries, formatDate } from '../data/sections';
+const latest = (await sectionEntries('blog'))[0];
+---
+<SiteLayout title="Smash.NES">
+  <section class="home-cover" aria-label="Smash.NES"><FighterRoster cover /></section>
+  <div class="home-links">
+    <a href="/book/"><h2>The Book <span aria-hidden="true">↗</span></h2><p>Learn to play. Then take the game apart.</p></a>
+    <a href="/docs/"><h2>The Docs <span aria-hidden="true">↗</span></h2><p>Build it, change it, test it.</p></a>
+    {latest && <a class="latest-post" href={`/${latest.id}/`}><small>Latest post{latest.data.date && ` · ${formatDate(latest.data.date)}`}</small><h2>{latest.data.title} <span aria-hidden="true">↗</span></h2></a>}
+  </div>
+</SiteLayout>

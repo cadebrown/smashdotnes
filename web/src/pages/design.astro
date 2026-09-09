@@ -1,0 +1,86 @@
+---
+import SiteLayout from '../layouts/SiteLayout.astro';
+import ThemePicker from '../components/themes/ThemePicker.astro';
+import FighterRoster from '../components/design/FighterRoster.astro';
+import '../styles/design.css';
+const fighters = [
+  { id: 'mario', name: 'Mario', pose: 8, move: 'Fireball', frames: 14 },
+  { id: 'simon', name: 'Simon', pose: 8, move: 'Whip & axe', frames: 14 },
+  { id: 'tommy', name: 'Tommy', pose: 8, move: 'Flying kick', frames: 14 },
+  { id: 'rizer', name: 'Rizer', pose: 11, move: 'Rifle shot', frames: 15 },
+];
+const tabs = [{id:'poster',name:'Fight poster'}, {id:'fighters',name:'Fighter roster'}, {id:'manual',name:'Cartridge manual'}];
+const poseStyle = (fighter: typeof fighters[number]) => `--sheet:url('/assets/fighters/${fighter.id}.png');--pose:${fighter.pose};--frames:${fighter.frames}`;
+---
+<SiteLayout wide title="Four retro themes" description="Compare four Smash.NES themes: Fight Poster, Rental Cartridge, Xerox Brawl, and After Hours.">
+  <section class="design-lab" aria-labelledby="design-title">
+    <header class="lab-intro"><div><p class="eyebrow">Smash.NES / theme workshop</p><h1 id="design-title">Four retro directions.</h1></div><p>A keeps the current look.<br/>B, C, and D turn up the age and texture.</p></header>
+    <div class="theme-desk"><ThemePicker expanded /></div>
+    <div class="direction-tabs" role="tablist" aria-label="Art studies">{tabs.map((tab,index)=><button id={`tab-${tab.id}`} role="tab" aria-selected={index===0} aria-controls={`panel-${tab.id}`} tabindex={index===0?0:-1} data-direction={tab.id}>{tab.name}</button>)}</div>
+
+    <section id="panel-poster" role="tabpanel" aria-labelledby="tab-poster" data-panel="poster" tabindex="0">
+      <div class="study-layout">
+        <div class="artboard fight-poster" aria-label="Smash.NES fight poster featuring the four actual fighter sprites">
+          <div class="poster-top"><span>8-BIT PLATFORM FIGHTER</span><span>SMASH.NES</span></div>
+          <div class="poster-title" aria-hidden="true"><span class="poster-logo">{'SMASH'.split('').map(letter=><i>{letter}</i>)}</span><b>.NES</b></div>
+          <p class="poster-subtitle">FOUR FIGHTERS. ONE PLATFORM.</p>
+          <div class="poster-roster">{fighters.map(fighter=><div class={`poster-fighter ${fighter.id}`}><span class="fighter-pose" style={poseStyle(fighter)} aria-hidden="true"></span><b>{fighter.name}</b></div>)}</div>
+          <div class="poster-bottom"><span>BUILD DAMAGE.<br/>SEND THEM FLYING.</span><a href="/play/">PLAY THE GAME →</a></div>
+        </div>
+        <aside class="art-notes">
+          <div class="theme-note theme-note-a"><p class="eyebrow">A / Fight Poster</p><h2>The current <br/>contender.</h2><p>Warm red, bone, and oversized fight lettering. The current direction, kept as our reference point.</p><p class="note-caption">Bold type / light wear / original color</p></div>
+          <div class="theme-note theme-note-b"><p class="eyebrow">B / Rental Cartridge</p><h2>A cart with <br/>some miles.</h2><p>Tile-built lettering, a scuffed label, dark plastic ribs, and a faded red stripe. A stronger NES shelf-box influence.</p><p class="note-caption">Pixel type / label scuffs / hard plastic</p></div>
+          <div class="theme-note theme-note-c"><p class="eyebrow">C / Xerox Brawl</p><h2>One more <br/>photocopy.</h2><p>Black ink, torn edges, taped-up type, and a roster printed in monochrome. The roughest, most handmade direction.</p><p class="note-caption">Cut paper / copied ink / heavy distress</p></div>
+          <div class="theme-note theme-note-d"><p class="eyebrow">D / After Hours</p><h2>The last <br/>cabinet lit.</h2><p>Amber, faded teal, and chunky multicolor tile letters. A worn arcade marquee with a quiet CRT texture in the artwork.</p><p class="note-caption">Tile marquee / aged color / cabinet trim</p></div>
+          <div class="ink-swatches" aria-label="Current theme palette"><i style="--swatch:var(--paper)"></i><i style="--swatch:var(--ink)"></i><i style="--swatch:var(--accent)"></i><i style="--swatch:var(--gold)"></i></div>
+          <a href="/play/">Try this theme on the player ↗</a>
+        </aside>
+      </div>
+    </section>
+
+    <section id="panel-fighters" role="tabpanel" aria-labelledby="tab-fighters" data-panel="fighters" hidden tabindex="0">
+      <div class="study-layout">
+        <FighterRoster />
+        <aside class="art-notes"><p class="eyebrow">The pixel work</p><h2>Original pixels. <br/>A little battle damage.</h2><p>The four fighters share the spotlight. Original artwork, centered on its visible silhouette and grounded on the same baseline.</p><p>Use the animation viewer to step through startup, contact, and recovery.</p><a href="/docs/rendering/">Open the sprite viewer ↗</a></aside>
+      </div>
+    </section>
+
+    <section id="panel-manual" role="tabpanel" aria-labelledby="tab-manual" data-panel="manual" hidden tabindex="0">
+      <div class="study-layout">
+        <div class="artboard manual-board">
+          <header><span>SMASH.NES</span><span>INSTRUCTION BOOKLET</span></header>
+          <div class="manual-content"><div><p class="eyebrow">Know the arena</p><h2>Stay on.<br/>Hit hard.</h2><p>Land a hit to build damage. Follow up to launch your opponent. Save your second jump for the way back.</p><a href="/book/#first-match">Read the player guide →</a></div><figure><img src="/assets/captures/03_battle.png" alt="Current Smash.NES battle capture" width="256" height="240"/><figcaption>The platform, as it appears in the game.</figcaption></figure></div>
+          <div class="manual-moves"><div><b>MOVE</b><span>A / D</span></div><div><b>JUMP</b><span>W</span></div><div><b>JAB</b><span>J</span></div><div><b>SPECIAL</b><span>K</span></div></div>
+          <footer><span>LEARN THE MOVES. THEN BREAK DOWN THE FRAMES.</span><a href="/docs/architecture/">Technical manual ↗</a></footer>
+        </div>
+        <aside class="art-notes"><p class="eyebrow">The packed-in manual</p><h2>Made to be <br/>thumbed through.</h2><p>Warm paper, dark ink, and diagrams you can actually use. The site's pixel labels come from the same 8×8 lettering tiles as the ROM.</p><p>The guide and technical chapters carry this treatment into controls, frame data, and interactive experiments.</p><a href="/book/#first-match">Open the manual ↗</a></aside>
+      </div>
+    </section>
+    <p class="art-boundary">Theme choices carry into the player, guide, and devlog. These are presentation studies; the ROM and its original pixels stay intact.</p>
+  </section>
+</SiteLayout>
+<script>
+  const tabs = [...document.querySelectorAll<HTMLButtonElement>('[data-direction]')];
+  const panels = [...document.querySelectorAll<HTMLElement>('[data-panel]')];
+  function selectTab(tab: HTMLButtonElement, updateUrl = true) {
+    tabs.forEach(item => { const active = item === tab; item.setAttribute('aria-selected', String(active)); item.tabIndex = active ? 0 : -1; });
+    panels.forEach(panel => { panel.hidden = panel.dataset.panel !== tab.dataset.direction; });
+    if (updateUrl) { const url = new URL(location.href); url.searchParams.set('study', tab.dataset.direction!); history.replaceState(history.state, '', url); }
+  }
+  const restoreStudy = () => {
+    const requested = new URLSearchParams(location.search).get('study');
+    const initial = tabs.find(tab => tab.dataset.direction === requested) || tabs[0];
+    if (initial) selectTab(initial, false);
+  };
+  restoreStudy();
+  window.addEventListener('popstate', restoreStudy);
+  tabs.forEach((tab,index) => {
+    tab.addEventListener('click', () => selectTab(tab));
+    tab.addEventListener('keydown', event => {
+      if (!['ArrowLeft','ArrowRight','Home','End'].includes(event.key)) return;
+      event.preventDefault();
+      const next = event.key === 'Home' ? 0 : event.key === 'End' ? tabs.length-1 : (index+(event.key==='ArrowRight'?1:-1)+tabs.length)%tabs.length;
+      tabs[next].focus(); selectTab(tabs[next]);
+    });
+  });
+</script>

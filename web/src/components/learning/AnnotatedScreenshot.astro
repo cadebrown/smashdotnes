@@ -1,0 +1,104 @@
+---
+import { manualAnnotations, type ManualAnnotation, type ManualScene } from '../../data/manual-annotations';
+
+interface Props {
+  scene: ManualScene;
+  /** A quieter version for the book landing-page preview. */
+  compact?: boolean;
+  /** Use this when a page renders identical scene variants more than once. */
+  id?: string;
+}
+
+const { scene, compact = false, id } = Astro.props;
+const manualScene = manualAnnotations[scene];
+const figureId = `manual-plate-${id ?? `${scene}-${compact ? 'compact' : 'full'}`}`;
+
+const connector = ({ x, y, badgeX, badgeY }: ManualAnnotation) => {
+  const midX = (x + badgeX) / 2;
+  const midY = (y + badgeY) / 2;
+  const bend = badgeX === x ? 10 : badgeY === y ? -10 : (badgeX < x ? -9 : 9);
+  return `M ${badgeX} ${badgeY} Q ${midX + bend} ${midY - bend} ${x} ${y}`;
+};
+---
+
+<figure class:list={['manual-plate', 'not-content', { 'manual-plate--compact': compact }]} data-manual-scene={scene} aria-labelledby={`${figureId}-caption`}>
+  <div class="manual-plate__paper">
+    <div class="manual-plate__screen-wrap">
+      <div class="manual-plate__screen">
+        <div class="manual-plate__image-wrap">
+          <img src={`/assets/captures/${manualScene.image}.png`} alt={manualScene.alt} width="256" height="240" loading={compact ? 'lazy' : 'eager'} />
+          <svg class="manual-plate__ink" viewBox="0 0 256 240" preserveAspectRatio="none" aria-hidden="true">
+            <defs>
+              <marker id={`${figureId}-arrow`} markerWidth="7" markerHeight="7" refX="5.5" refY="3.5" orient="auto" markerUnits="strokeWidth">
+                <path d="M0,0 L7,3.5 L0,7" fill="none" stroke="currentColor" stroke-width="1.4" />
+              </marker>
+            </defs>
+            {manualScene.annotations.map((annotation) => <g class="manual-plate__mark">
+              <path d={connector(annotation)} marker-end={`url(#${figureId}-arrow)`} />
+              <circle class="manual-plate__target" cx={annotation.x} cy={annotation.y} r="5" />
+              <circle class="manual-plate__badge" cx={annotation.badgeX} cy={annotation.badgeY} r="8" />
+              <text x={annotation.badgeX} y={annotation.badgeY} text-anchor="middle">{annotation.label}</text>
+              {annotation.tag && <g class="manual-plate__tag" transform={`translate(${annotation.tagX ?? annotation.badgeX},${annotation.tagY ?? annotation.badgeY + 17})`}>
+                <rect x="-3" y="-11" width={annotation.tag.length * 6.2 + 6} height="16" />
+                <text>{annotation.tag}</text>
+              </g>}
+            </g>)}
+          </svg>
+        </div>
+      </div>
+      <span class="manual-plate__capture-stamp">native capture · 256 × 240</span>
+    </div>
+
+    <ol class="manual-plate__notes" aria-label={`${manualScene.title} annotations`}>
+      {manualScene.annotations.map((annotation) => <li>
+        <span class="manual-plate__note-label" aria-hidden="true">{annotation.label}</span>
+        <span>{annotation.note}</span>
+      </li>)}
+    </ol>
+  </div>
+  <figcaption id={`${figureId}-caption`}>
+    <strong>{manualScene.title}</strong>
+    <span>{manualScene.caption}</span>
+  </figcaption>
+</figure>
+
+<style>
+  .manual-plate{--paper:#e6d8ad;--ink:#263123;--red:#a74731;--rule:#806e4c;box-sizing:border-box;max-width:760px;margin:30px auto;color:var(--ink);font-family:Arial,sans-serif}
+  .manual-plate *{box-sizing:border-box}
+  .manual-plate__paper{position:relative;padding:30px 28px 22px;overflow:hidden;border:1px solid color-mix(in srgb,var(--rule) 70%,transparent);background:linear-gradient(102deg,#d8c998 0%,var(--paper) 38%,#eadfb9 100%);box-shadow:3px 4px 0 #332b1d27,0 12px 22px #332b1d20}
+  .manual-plate__paper::before{position:absolute;inset:0;pointer-events:none;content:"";opacity:.32;background:repeating-linear-gradient(-16deg,transparent 0 11px,#74633d12 12px 13px),radial-gradient(circle at 12% 28%,#5d4c2d24 0 1px,transparent 1.5px);background-size:auto,17px 19px;mix-blend-mode:multiply}
+  .manual-plate__screen-wrap{position:relative;z-index:1;max-width:512px;margin:0 auto}
+  .manual-plate__screen{--screen-border:7px;position:relative;border:var(--screen-border) solid #30291d;outline:2px solid #b64431;box-shadow:5px 6px 0 #47392358;line-height:0;background:#000}
+  .manual-plate__image-wrap{position:relative}
+  .manual-plate__screen img{display:block;width:100%;height:auto;image-rendering:pixelated}
+  .manual-plate__ink{position:absolute;inset:0;width:100%;height:100%;overflow:visible;color:var(--red);pointer-events:none}
+  .manual-plate__mark path{fill:none;stroke:currentColor;stroke-width:1.55;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke}
+  .manual-plate__target,.manual-plate__badge{fill:none;stroke:currentColor;stroke-width:1.5;vector-effect:non-scaling-stroke}
+  .manual-plate__mark text{fill:currentColor;font:600 11px/1 var(--manual-hand,'Caveat',cursive);dominant-baseline:middle}
+  .manual-plate__tag rect{fill:#e8dbb5;stroke:none;opacity:.95}
+  .manual-plate__tag text{font-size:13px;dominant-baseline:auto}
+  .manual-plate__capture-stamp{display:block;margin-top:10px;color:#5f533d;font:700 9px/1.3 var(--pixel,monospace);letter-spacing:.05em;text-align:right;text-transform:uppercase}
+  .manual-plate__notes{position:relative;z-index:1;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 20px;margin:20px 0 0;padding:0;list-style:none}
+  .manual-plate__notes li{display:grid;grid-template-columns:28px 1fr;gap:8px;align-items:start;min-width:0;padding-top:8px;border-top:1px solid #806e4c99;color:#373425;font:600 24px/1.02 var(--manual-hand,'Caveat',cursive)}
+  .manual-plate__note-label{display:grid;place-items:center;width:24px;height:24px;border:1.5px solid var(--red);border-radius:48% 52% 46% 54%;color:var(--red);font:600 17px/1 var(--manual-hand,'Caveat',cursive);transform:rotate(-6deg)}
+  .manual-plate__notes li:nth-child(even) .manual-plate__note-label{transform:rotate(5deg)}
+  .manual-plate figcaption{display:flex;gap:10px;align-items:baseline;padding:12px 14px;color:var(--ink);background:var(--paper);font:400 15px/1.45 Arial,sans-serif}
+  .manual-plate figcaption strong{font:400 19px/1.1 var(--pixel,monospace)}
+  .manual-plate figcaption span{color:#5f533d}
+  .manual-plate--compact{max-width:none;margin:0}
+  .manual-plate--compact .manual-plate__paper{padding:14px 12px 12px;border:0;box-shadow:none}
+  .manual-plate--compact .manual-plate__screen{--screen-border:5px;box-shadow:3px 4px 0 #47392358}
+  .manual-plate--compact .manual-plate__capture-stamp{margin-top:7px;font-size:7px}
+  .manual-plate--compact .manual-plate__notes{grid-template-columns:1fr;gap:7px;margin-top:12px}
+  .manual-plate--compact .manual-plate__notes li{padding-top:5px;font-size:22px}
+  .manual-plate--compact figcaption{display:none}
+  @media (max-width:520px){
+    .manual-plate{margin:24px 0}
+    .manual-plate__paper{padding:16px 12px 14px}
+    .manual-plate__notes{grid-template-columns:1fr;gap:8px;margin-top:14px}
+    .manual-plate__notes li{font-size:22px}
+    .manual-plate figcaption{display:block;padding-inline:14px}
+    .manual-plate figcaption strong{display:block;margin-bottom:4px}
+  }
+  @media (prefers-reduced-motion:reduce){.manual-plate__note-label{transform:none!important}}
+</style>

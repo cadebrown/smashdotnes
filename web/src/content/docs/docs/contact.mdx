@@ -1,0 +1,39 @@
+---
+title: Combat contact and projectiles
+description: Active windows, overlap rectangles, trades, and bounded projectiles.
+sidebar:
+  label: Contact
+  order: 7
+---
+Combat is rectangle overlap plus action timing. It is intentionally understandable enough to inspect in the C source and strong enough to make spacing meaningful.
+
+<aside class="book-exercise"><strong>Try it: trade on purpose.</strong><p>Choose matching fighters in P1 VS P2, face them together, and begin jabs on the same update. Both sparks mean both active rectangles overlapped.</p></aside>
+
+## A hitbox exists only during an active window
+
+Jab visuals have three phases. Generated character data supplies total duration, phase boundaries, and inclusive active ticks; [`jab_is_active()`](https://github.com/cadebrown/smashdotnes/blob/main/src/main.c) computes elapsed ticks from the remaining timer. Mario, Tommy, and Rizer use 9 ticks with contact on elapsed ticks 3–5. Simon uses 15 with contact on 5–9. Tommy’s special is a 12-tick kick active on 4–7.
+
+The code tests a 16×32 defender body against an 8-pixel-high attack rectangle in front of the attacker. Jab reach is 10/20/12/14 pixels for Mario/Simon/Tommy/Rizer. Tommy’s kick extends 24 pixels. Art can overhang these rectangles; visual pixels do not redefine collision.
+
+## Trades are a frame-order property
+
+`update_battle()` calls `detect_melee_hit(0)` and `detect_melee_hit(1)` before either call to `apply_melee_hit()`. Both attacks therefore use the same action state. If both are active and overlap, each lands. Once a hit is applied, it clears the target’s timers, so a later startup never becomes contact by accident.
+
+On every hit, the runtime sets ten ticks of hitstun, cancels jab/special, adds damage, applies launch velocity, starts a five-tick spark, and sends a sound cue. The source’s [`apply_hit()`](https://github.com/cadebrown/smashdotnes/blob/main/src/main.c) is the authoritative list.
+
+## Projectiles are separate moving entities
+
+Mario spawns a fireball at 3 horizontal pixels per update, lifetime 40, with a fixed low bounce. Simon’s axe starts at vertical velocity `-9`, moves 2 pixels horizontally, gains downward velocity until 6, and lives 55 updates. Rizer’s bullet moves straight at 4 and lives 30. Each owner may have at most one active projectile, and the global pool is bounded, which caps per-frame work.
+
+Projectile visuals are not collision geometry: each collision is an 8×8 projectile rectangle against the same fighter body. A live projectile survives its owner entering hitstun because [`update_projectiles()`](https://github.com/cadebrown/smashdotnes/blob/main/src/main.c) runs independently after melee resolution.
+
+<details>
+<summary>Does a long-looking whip always hit?</summary>
+
+No. The runtime tests the authored reach rectangle. Art can overhang it without changing collision.
+
+</details>
+
+## Source data chooses cadence, not every rule
+
+Character TOML files author frame sequence, duration, and active window. For example, [Simon’s character file](https://github.com/cadebrown/smashdotnes/blob/main/src/chars/simon/character.toml) gives the whip’s timing, while C supplies the shared body dimensions, reach table, damage, and resolution sequence. The generated state graph is validated data; it is not a generic state-machine interpreter running the fight.

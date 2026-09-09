@@ -1,0 +1,9 @@
+---
+import { legacyRoutes } from '../data/legacy-routes';
+import RedirectPage from '../components/RedirectPage.astro';
+export function getStaticPaths() {
+  return Object.entries(legacyRoutes).map(([legacy, target]) => ({ params: { legacy }, props: { target } }));
+}
+const { target } = Astro.props;
+---
+<RedirectPage target={target}/>

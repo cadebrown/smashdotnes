@@ -1,0 +1,92 @@
+{
+  "version": 1,
+  "romSha256": "daee33b394e3c52b4fd8fa66058a650b9497e459fb5a663714be2eb15e4d6625",
+  "driverSha256": "18106b5cacadccf2449512e63bc9cdbe2036640dd71fbae43e3e56670c5562ea",
+  "annotationSha256": "e805a294aaf7a5d76edd5131c8d3fe024c5f1dd33fb89d3148fc11e108abbebe",
+  "images": [
+    {
+      "file": "01_title.png",
+      "sha256": "e1d8e7122dd09bc414388e00d844f2938069cdc299b2b5bb147c7b419161b29b",
+      "width": 256,
+      "height": 240
+    },
+    {
+      "file": "02_lobby.png",
+      "sha256": "17c9443909b9b90e749d8fde381ff2e3de33d4d92979471f09210c93bbccab55",
+      "width": 256,
+      "height": 240
+    },
+    {
+      "file": "03_battle.png",
+      "sha256": "4fd3a8ba2a57553c4fb9f9acf56460d33e6459f4c34faef37504ce49c282b4ae",
+      "width": 256,
+      "height": 240
+    },
+    {
+      "file": "04_walk.png",
+      "sha256": "4a2ab5f5d590a999ef25aff6ebfd12d643373280dad114af4be2f8e4c45dc631",
+      "width": 256,
+      "height": 240
+    },
+    {
+      "file": "05_jump.png",
+      "sha256": "88de91d05b430a9ea1f030dd6b7b0a269dbf153363b2c0255c569335ea5d422e",
+      "width": 256,
+      "height": 240
+    },
+    {
+      "file": "06_jab.png",
+      "sha256": "4aeb7e7385ec194771d02b8b9d826fced2ceb2e440d0efdfd9e380dc4c22e3dd",
+      "width": 256,
+      "height": 240
+    },
+    {
+      "file": "07_special.png",
+      "sha256": "61ca828eba36fdd5ddcb1d8490b7c57984f46a22be413bd9cb9bdc32eee37677",
+      "width": 256,
+      "height": 240
+    },
+    {
+      "file": "08_jump_press.png",
+      "sha256": "df8b88b30defc9d5b219110ae38d2d898be9b27c5b576f452267878e1a1c017b",
+      "width": 256,
+      "height": 240
+    },
+    {
+      "file": "09_jump_release.png",
+      "sha256": "127b3ce49e5cc9e42efb1af2dbc2acf4791a9805c9628b695bb5ba2ff95dafe0",
+      "width": 256,
+      "height": 240
+    },
+    {
+      "file": "10_jump_again.png",
+      "sha256": "41d6ff585bbbfbc20427cc4cda1385c357d1c85111a3b15387547f6fefbd2222",
+      "width": 256,
+      "height": 240
+    },
+    {
+      "file": "11_hit.png",
+      "sha256": "f4f67cbcfc7bbb7aa90d03af13e781cc887564601e3e924798e7c0a7fe8766cb",
+      "width": 256,
+      "height": 240
+    },
+    {
+      "file": "14_simon_special.png",
+      "sha256": "3fe1df2e31ed110bdf50bec972cabb7077a9236a012ee6d4748fc0ae43fa6723",
+      "width": 256,
+      "height": 240
+    },
+    {
+      "file": "15_tommy_special.png",
+      "sha256": "c1056a3c0d202109295bb5fba30eb166fc97825bca0316d39ef6ad30a60b4e9a",
+      "width": 256,
+      "height": 240
+    },
+    {
+      "file": "16_rizer_special.png",
+      "sha256": "b8421bb7dbe08f52aa1d6eadc41a861fa264c2edc80c2f4af52fb83ff899d563",
+      "width": 256,
+      "height": 240
+    }
+  ]
+}

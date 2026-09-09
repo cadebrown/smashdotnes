@@ -1,0 +1,124 @@
+.game-frame {
+  container-type: inline-size;
+  background: #080909;
+}
+#game {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  color-scheme: dark;
+  color: #fff;
+  background: #080909;
+}
+#game:focus-visible { outline-offset: 3px; }
+#game canvas {
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: none !important;
+  max-height: none !important;
+  object-fit: fill;
+  image-rendering: pixelated;
+}
+#game [hidden] { display: none !important; }
+
+/* EmulatorJS overlays its virtual controller. Reserve space when it is enabled,
+   including when a desktop player enables touch controls in controller settings.
+   Opacity zero is the vendor's temporary, invisible resize measurement. */
+.game-frame:has(.ejs_virtualGamepad_parent:not([style*="display: none"]):not([style*="opacity: 0"])) #game:not(:fullscreen) {
+  height: calc(75cqi + 230px);
+  aspect-ratio: auto;
+}
+.game-frame:has(.ejs_virtualGamepad_parent:not([style*="display: none"]):not([style*="opacity: 0"])) #game:not(:fullscreen) .ejs_canvas_parent {
+  height: 75cqi;
+}
+#game:fullscreen {
+  width: 100%;
+  height: 100%;
+  aspect-ratio: auto;
+}
+#game:fullscreen .ejs_canvas_parent {
+  width: min(100%, calc(100vh * 4 / 3));
+  height: min(100%, 75vw);
+  margin: auto;
+}
+
+.game-status { margin: 12px 0; color: var(--muted); font-size: 0.875rem; }
+.controls { padding: 14px 0 12px; font-size: 0.875rem; }
+.controls p { margin: 0 0 12px; line-height: 1.6; }
+.keyboard-hint { color: var(--muted); }
+.touch-hint { display: none; }
+.keyboard-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 24px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+.keyboard-controls li { display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+kbd {
+  display: inline-block;
+  min-width: 24px;
+  padding: 2px 5px;
+  border: 1px solid var(--line);
+  border-radius: 0;
+  color: var(--ink);
+  background: var(--paper);
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  line-height: 1.4;
+  text-align: center;
+}
+.play-help { margin-top: 12px; }
+summary { width: fit-content; cursor: pointer; padding: 10px 0; }
+.play-help p { max-width: 68ch; }
+/* Keep the reduced toolbar on one line at the vendor's narrow breakpoint. */
+#game.ejs_small_screen .ejs_menu_bar {
+  left: 0;
+  right: 0;
+  transform: translateY(0);
+  width: 100%;
+  max-width: 100%;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 0;
+  padding: 3px;
+}
+#game.ejs_small_screen .ejs_menu_bar.ejs_menu_bar_hidden { transform: translateY(100%); }
+#game.ejs_small_screen .ejs_menu_button {
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  margin: 0 !important;
+  padding: 13px;
+}
+#game.ejs_small_screen .ejs_menu_text {
+  display: block;
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+#game.ejs_small_screen .ejs_volume_parent {
+  flex: 1 1 90px;
+  min-width: 0;
+  padding-right: 0;
+}
+#game.ejs_small_screen .ejs_volume_parent input[type="range"] { min-width: 0; }
+
+@media (min-width: 800px) and (min-height: 600px) {
+  .site-shell { max-width: calc((100svh - 280px) * 4 / 3); }
+}
+
+.player-surface { position:relative; min-width:0; }
+.game-frame { outline:1px solid var(--line); box-shadow:0 5px 0 #080807; }
+.controls { border-bottom:1px solid var(--line); }
+.controls summary { font:700 .8rem var(--mono); color:var(--gold); }
+kbd { box-shadow:0 2px 0 var(--line); }
+.visually-hidden,[data-emulator="running"] .game-status{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+@media(pointer:coarse){.keyboard-hint,.keyboard-controls{display:none}.touch-hint{display:block}}

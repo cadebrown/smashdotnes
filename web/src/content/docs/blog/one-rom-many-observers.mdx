@@ -1,0 +1,17 @@
+---
+title: One ROM, many observers
+description: Why the browser, MAME, FCEUX, screenshots, and a small RAM contract all point at one cartridge artifact.
+date: 2026-09-08
+template: splash
+prev: false
+next: false
+---
+The project became easier to reason about once the browser stopped being treated as a second game implementation. The static site receives the built `smash.nes`, then local EmulatorJS loads it. MAME and FCEUX load that same format through their own emulation paths. The rule is simple: publish and test the cartridge, not a parallel approximation of the rules.
+
+That choice makes a disagreement useful. If a browser input looks wrong, there are concrete boundaries to inspect: browser key mapping, emulator controller mapping, ROM controller read, and scene/input state. A visual capture can then be paired with a frame counter and sampled pads from `$06E0`. We do not have to infer all of that from pixels.
+
+The small RAM export is deliberately not a cheat interface. It exposes only enough state to make emulator scenarios legible: scene, mode, frame, inputs, projectile count, positions, damage, KO counts, audio debug fields, action timers, rendered frame IDs, and an OAM/effect summary. That keeps tests from depending on fragile internal addresses while avoiding an elaborate debug build.
+
+The result is a better claim, not an inflated one. A browser check can show that the packaged site starts, maps a real key, changes a rendered canvas, and releases focus with Tab. A MAME scenario can show a known sequence of game updates and collision outcomes. Neither result says anything on its own about a deployed cache, every browser, or physical hardware. The [testing chapter](/docs/testing/) records those boundaries in more detail.
+
+Source trail: [`nessy` web sync and test commands](https://github.com/cadebrown/smashdotnes/blob/main/nessy/src/main.rs), [`TEST_RAM` publisher](https://github.com/cadebrown/smashdotnes/blob/main/src/main.c), and [`docs/architecture.md`](https://github.com/cadebrown/smashdotnes/blob/main/docs/architecture.md).

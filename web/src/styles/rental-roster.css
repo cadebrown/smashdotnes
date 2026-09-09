@@ -1,0 +1,130 @@
+/* Rental shell / phosphor screen. The emulator canvas is outside this effect stack. */
+:root:not([data-art-theme=b]) [data-rental-roster] .rental-only { display:none; }
+#panel-fighters { scroll-margin-top:24px; }
+.design-lab:has(#panel-fighters:not([hidden])) .theme-desk { position:static; }
+:root[data-art-theme=b] #panel-fighters .study-layout { grid-template-columns:minmax(0,1fr); gap:28px; }
+:root[data-art-theme=b] #panel-fighters .art-notes { display:grid; grid-template-columns:1fr 1.3fr auto; align-items:center; gap:10px 28px; border-top:1px solid var(--line); padding-top:22px; }
+:root[data-art-theme=b] #panel-fighters .art-notes .eyebrow { grid-column:1/-1; }
+:root[data-art-theme=b] #panel-fighters .art-notes h2 { font:400 24px/1.35 var(--pixel); margin:0; }
+:root[data-art-theme=b] #panel-fighters .art-notes p:not(.eyebrow) { margin:0; }
+:root[data-art-theme=b] #panel-fighters .art-notes p:nth-last-of-type(1) { display:none; }
+:root[data-art-theme=b] #panel-fighters .art-notes a { margin:0; }
+
+:root[data-art-theme=b] .roster-board[data-rental-roster] {
+  position:relative; isolation:isolate; padding:22px 26px 0; border:10px solid #343832; border-radius:5px 5px 18px 18px;
+  color:#e4ddbf; background:var(--grit),repeating-linear-gradient(0deg,#252923 0 3px,#151a16 3px 7px);
+  box-shadow:inset 0 2px 0 #7a7b69,inset 0 -5px 0 #080c0a,0 0 0 1px #65695b,8px 12px 0 #090b09,0 18px 44px #0008;
+  & > .rental-only { display:flex; }
+  &::before { content:''; pointer-events:none; position:absolute; inset:0; z-index:4; border-radius:inherit; background:url('/assets/rental-wear.svg') center/100% 100% no-repeat; opacity:.75; }
+  & .rental-label { position:relative; display:grid; grid-template-columns:1fr auto; align-items:center; gap:7px 24px; margin:0 0 22px; padding:17px 24px 13px; color:#192019; background:var(--grit),#d9d0ae; border-bottom:9px solid #a94430; box-shadow:2px 3px 0 #080c0a; clip-path:polygon(.25% 0,99.8% .3%,100% 99%,0 100%); }
+  & .rental-label::after { content:''; position:absolute; inset:0; background:url('/assets/rental-wear.svg') center/100% 100% no-repeat; mix-blend-mode:multiply; opacity:.6; pointer-events:none; }
+  & .rental-brand { font:400 40px/1 var(--pixel); letter-spacing:-.03em; }
+  & .rental-brand span { font-size:24px; }
+  & .rental-stamp { grid-row:1/3; grid-column:2; border:3px solid #81372c; padding:7px 10px; color:#81372c; transform:rotate(4deg); font:700 12px/1.25 var(--mono); letter-spacing:.08em; text-align:center; }
+  & .rental-label-caption { font:700 10px/1.4 var(--mono); letter-spacing:.12em; }
+  & .roster-screen { --light-x:50%; --light-y:30%; position:relative; overflow:hidden; isolation:isolate; border:3px solid #050907; border-radius:19px / 14px; background:radial-gradient(ellipse at 50% 40%,#26362d 0,#111d17 54%,#080e0b 100%); box-shadow:0 1px 0 #8b8d76,inset 0 0 0 2px #4a5546,inset 0 0 55px 18px #0009; }
+  & .roster-screen-header { display:flex; justify-content:space-between; align-items:flex-start; gap:24px; padding:32px 36px 24px; border:0; text-align:left; }
+  & .eyebrow { color:#a5af92; font:400 8px/1.8 var(--pixel); letter-spacing:.14em; margin:0 0 12px; }
+  & h2 { color:#e1dab6; font:400 32px/1.25 var(--pixel); letter-spacing:0; text-shadow:-1px 0 #d3796470,1px 0 #81b8a670,0 0 18px #d8ce9b28; }
+  & .screen-fx-toggle { position:relative; z-index:6; display:inline-flex; align-items:center; gap:7px; flex:none; min-height:36px; border:1px solid #74836b; background:#121c15; color:#cecba9; padding:8px 10px; font:700 10px/1 var(--mono); white-space:nowrap; }
+  & .screen-fx-toggle:hover { border-color:#d7bc74; color:#f4e6b8; }
+  & .screen-fx-toggle:focus-visible { outline:2px solid #e4c875; outline-offset:3px; }
+  & .fx-lamp { width:5px; height:5px; background:#ccdd9b; box-shadow:0 0 7px #ccdd9b; }
+  & .fighter-grid { position:relative; gap:0; padding:0 22px; }
+  & .fighter-grid::before { display:none; }
+  & .roster-fighter { --pixel-scale:var(--large-scale); position:relative; min-width:0; padding:12px 10px 24px; border:0; color:#e4ddbf; background:none; }
+  & .roster-fighter::before { content:''; position:absolute; inset:6px 5px 16px; z-index:-1; opacity:.28; border-top:2px solid var(--fighter-ink); background:linear-gradient(180deg,color-mix(in srgb,var(--fighter-ink) 13%,transparent),transparent 40%); transition:opacity .16s ease-out; }
+  & .roster-fighter::after { content:''; position:absolute; inset:6px 5px 16px; border:1px solid var(--fighter-ink); clip-path:polygon(0 0,12px 0,12px 2px,2px 2px,2px 12px,0 12px,0 0,100% 0,100% 12px,calc(100% - 2px) 12px,calc(100% - 2px) 2px,calc(100% - 12px) 2px,calc(100% - 12px) 0,100% 0,100% 100%,calc(100% - 12px) 100%,calc(100% - 12px) calc(100% - 2px),calc(100% - 2px) calc(100% - 2px),calc(100% - 2px) calc(100% - 12px),100% calc(100% - 12px),100% 100%,0 100%,0 calc(100% - 12px),2px calc(100% - 12px),2px calc(100% - 2px),12px calc(100% - 2px),12px 100%,0 100%); opacity:.2; pointer-events:none; transition:opacity .16s; }
+  & .roster-fighter:hover::before,& .roster-fighter:focus-visible::before { opacity:1; }
+  & .roster-fighter:hover::after,& .roster-fighter:focus-visible::after { opacity:1; }
+  & .roster-fighter:focus-visible { outline:2px solid var(--fighter-ink); outline-offset:-4px; }
+  & .sprite-stage { position:relative; align-items:flex-end; justify-content:center; height:232px; padding-bottom:12px; background:none; }
+  & .sprite-stage::after { content:''; position:absolute; bottom:11px; width:calc(100% + 20px); height:1px; background:#708065; box-shadow:0 1px 0 #060b08; }
+  & .sprite-stage::before { content:''; position:absolute; width:65%; max-width:148px; height:15px; bottom:5px; border-radius:50%; background:var(--fighter-ink); filter:blur(12px); opacity:.23; }
+  & .roster-pose {
+    position:relative; width:calc(var(--crop-width) * var(--pixel-scale) * 1px); height:calc(var(--crop-height) * var(--pixel-scale) * 1px);
+    background-size:calc(var(--frames) * 32px * var(--pixel-scale)) calc(40px * var(--pixel-scale));
+    background-position:calc((var(--pose) * 32 + var(--crop-x)) * var(--pixel-scale) * -1px) calc(var(--crop-y) * var(--pixel-scale) * -1px);
+    filter:drop-shadow(-1px 0 #c56a4b50) drop-shadow(1px 0 #7cac9560) drop-shadow(0 0 7px #c8cd8f25);
+  }
+  & .roster-fighter h3 { margin:25px 0 12px; color:#e4ddbf; font:400 24px/1.2 var(--pixel); text-shadow:0 0 9px #e4ddbf25; }
+  & .roster-fighter p { color:#acae91; font:400 13px/1.5 var(--mono); }
+  & .fighter-cue { display:block; font:700 8px/1.5 var(--mono); letter-spacing:.06em; color:var(--fighter-ink); margin-top:14px; opacity:.7; }
+  & .roster-fighter:hover h3,& .roster-fighter:focus-visible h3 { color:var(--fighter-ink); }
+  & .roster-fighter:hover .fighter-cue,& .roster-fighter:focus-visible .fighter-cue { opacity:1; }
+  & .roster-screen footer { position:relative; display:flex; flex-direction:row; align-items:center; justify-content:space-between; gap:20px; margin:0 36px; padding:22px 0 26px; border-top:1px solid #64735c; color:#a9ae93; font:700 11px/1.7 var(--mono); }
+  & footer br { display:block; }
+  & .roster-play { position:relative; z-index:6; display:inline-flex; align-items:center; gap:22px; padding:14px 17px; border:1px solid #f2b183; color:#f7ead2; background:#8f3d2b; font:400 16px/1.5 var(--pixel); text-decoration:none; box-shadow:3px 3px 0 #020502; }
+  & .roster-play:hover { background:#ad5039; }
+  & .rental-shell-footer { display:flex; align-items:center; justify-content:space-between; gap:16px; min-height:46px; padding:0 10px; color:#a5aa91; font:700 8px/1.5 var(--mono); letter-spacing:.1em; }
+  & .cartridge-contacts { width:150px; height:17px; border:3px solid #141a14; border-bottom:0; border-radius:4px 4px 0 0; align-self:flex-end; background:repeating-linear-gradient(90deg,#8b7544 0 7px,#1c2018 7px 10px); box-shadow:inset 0 3px 6px #000b; }
+  & .screen-effects { display:block; position:absolute; inset:0; overflow:hidden; z-index:5; border-radius:inherit; pointer-events:none; box-shadow:inset 0 0 45px 10px #0006; }
+  & .screen-effects i { display:block; position:absolute; pointer-events:none; }
+  & .screen-scanlines { inset:0; opacity:.42; background:repeating-linear-gradient(0deg,#0000 0 2px,#0009 2px 3px,#0000 3px 4px),repeating-linear-gradient(90deg,#ef685510 0 1px,#81b2930c 1px 2px,#7d92a610 2px 3px); }
+  & .screen-grain { inset:-30px; opacity:.12; background:url('/assets/copier-distress.svg'); mix-blend-mode:screen; animation:phosphor-grain .36s steps(1,end) infinite; }
+  & .screen-roll { inset:-40% 0 auto; height:28%; opacity:.07; background:linear-gradient(transparent,#d8e2be,transparent); animation:phosphor-roll 11s linear infinite; }
+  & .screen-glass { inset:0; background:radial-gradient(ellipse at var(--light-x) var(--light-y),#dae9bd0f,transparent 52%),linear-gradient(130deg,#fcfff708,transparent 28% 70%,#0003); }
+  &[data-screen-fx=off] .screen-effects { display:none; }
+  &[data-screen-fx=off] .roster-pose { filter:none; }
+  &[data-screen-fx=off] .fx-lamp { background:#7a806e; box-shadow:none; }
+}
+@keyframes phosphor-grain { 0%,100% { transform:translate(0,0); } 25% { transform:translate(-13px,7px); } 50% { transform:translate(9px,-11px); } 75% { transform:translate(-6px,-17px); } }
+@keyframes phosphor-roll { from { transform:translateY(0); } to { transform:translateY(650%); } }
+@media(max-width:1000px) {
+  :root[data-art-theme=b] #panel-fighters .art-notes { grid-template-columns:1fr 1fr; }
+  :root[data-art-theme=b] #panel-fighters .art-notes a { grid-column:2; }
+  :root[data-art-theme=b] .roster-board[data-rental-roster] {
+    padding:16px 16px 0; border-width:8px;
+    & .roster-fighter { --pixel-scale:var(--small-scale); padding-inline:4px; }
+    & .sprite-stage { height:166px; }
+    & .roster-fighter h3 { font-size:16px; }
+    & .fighter-grid::before { bottom:107px; }
+    & .roster-screen-header { padding:26px 24px 16px; }
+    & h2 { font-size:24px; }
+    & .roster-screen footer { margin-inline:24px; }
+    & .roster-play { font-size:8px; padding:13px; }
+  }
+}
+@media(max-width:760px) {
+  :root[data-art-theme=b] .roster-board[data-rental-roster] {
+    & .fighter-grid { grid-template-columns:repeat(4,minmax(0,1fr)); padding:0 10px; }
+    & .roster-fighter { border:0; }
+    & .rental-brand { font-size:32px; }
+    & .rental-brand span { font-size:16px; }
+    & .roster-screen-header { flex-direction:column; gap:12px; }
+    & .screen-fx-toggle { min-height:30px; padding:6px 8px; }
+    & .roster-fighter p { font-size:11px; }
+    & .fighter-cue { font-size:7px; letter-spacing:0; }
+  }
+}
+@media(max-width:600px) {
+  :root[data-art-theme=b] #panel-fighters .art-notes { display:block; }
+  :root[data-art-theme=b] #panel-fighters .art-notes h2 { font-size:16px; margin:12px 0; }
+  :root[data-art-theme=b] #panel-fighters .art-notes a { margin-top:12px; }
+  :root[data-art-theme=b] .roster-board[data-rental-roster] {
+    padding:8px 6px 0; border-width:7px; border-radius:4px 4px 12px 12px;
+    & .rental-label { margin-bottom:9px; padding:12px 10px; gap:6px; border-bottom-width:6px; }
+    & .rental-brand { font-size:24px; }
+    & .rental-brand span { font-size:16px; }
+    & .rental-stamp { font-size:7px; padding:4px; border-width:2px; }
+    & .rental-label-caption { font-size:7px; letter-spacing:.01em; }
+    & .roster-screen { border-radius:12px / 10px; border-width:2px; }
+    & .roster-screen-header { padding:20px 14px 10px; gap:10px; }
+    & .eyebrow { font-size:8px; letter-spacing:0; margin-bottom:8px; }
+    & h2 { font-size:24px; }
+    & .fighter-grid { grid-template-columns:repeat(2,minmax(0,1fr)); padding:0; }
+    & .fighter-grid::before { display:none; }
+    & .roster-fighter { padding:6px 4px 20px; }
+    & .roster-fighter h3 { margin-top:20px; }
+    & .sprite-stage { height:150px; }
+    & .sprite-stage::after { bottom:11px; width:90%; }
+    & .roster-screen footer { margin:0 14px; padding:17px 0 20px; align-items:flex-start; flex-direction:column; gap:14px; }
+    & .roster-play { align-self:stretch; justify-content:space-between; font-size:8px; }
+    & .rental-shell-footer { min-height:38px; padding:0 2px; font-size:6px; letter-spacing:0; }
+    & .cartridge-contacts { width:60px; height:13px; flex:none; }
+  }
+}
+@media(prefers-reduced-motion:reduce) {
+  :root[data-art-theme=b] .roster-board[data-rental-roster] .screen-effects .screen-roll { display:none; }
+  :root[data-art-theme=b] .roster-board[data-rental-roster] .screen-grain { animation:none; }
+}

@@ -1,0 +1,33 @@
+---
+title: Tiles, OAM, and animation
+description: How authored fighter sheets become bounded NES sprite work each frame.
+sidebar:
+  label: Rendering
+  order: 8
+---
+import AnimationViewer from '../../../components/learning/AnimationViewer.astro';
+import AnnotatedScreenshot from '../../../components/learning/AnnotatedScreenshot.astro';
+
+Fighter art starts as four authored sheets on a shared 32×40 canvas. The generator slices 8×8 cells, removes transparent cells, deduplicates identical tiles, and also recognizes flipped variants. It emits compact visible-cell commands plus semantic frame and timing tables. The runtime does not scan a mostly transparent canvas during battle.
+
+<AnimationViewer />
+
+<AnnotatedScreenshot scene="rizer-special" id="rendering-rizer" />
+
+## Frame choice has a priority order
+
+[`draw_fighter()`](https://github.com/cadebrown/smashdotnes/blob/main/src/main.c) selects exactly one semantic pose. Hurt overrides everything. Rizer’s airborne curl overrides action poses while airborne. Otherwise special precedes jab; airborne non-Rizer fighters choose rise, apex, or fall from vertical velocity; grounded motion uses the authored walk cadence; idle alternates at its authored rate.
+
+The viewer reads cadence from the four [`character.toml`](https://github.com/cadebrown/smashdotnes/tree/main/src/chars) sources. It is a guide to generated tables, rather than a frame-exact preview of the PPU: hardware flips, OAM priority, game-frame phase, and character position are resolved by the ROM.
+
+## OAM is prepared for the next vblank
+
+NES sprite memory stores four bytes per entry: Y, tile, attributes, X. The runtime fills a RAM OAM buffer from packed cells, hides unused entries below the visible scanlines, then triggers DMA during vblank. Rendering follows simulation, so the next displayed frame matches the state that the test export reports.
+
+The project budget is explicit: 244 deduplicated fighter tiles plus eight effect tiles leave four slots in the 256-tile sprite pattern table. Effects draw before fighters; Simon’s whip adds extension sprites only during active jab frames. [`draw_character_icon()`](https://github.com/cadebrown/smashdotnes/blob/main/src/main.c) recovers horizontal flip through attribute bits rather than storing another tile.
+
+## Screenshots verify presentation alongside state
+
+The emulator suite reads rendered frame IDs at `$06FE`, then waits an additional game tick before saving a screenshot so the corresponding OAM buffer has reached the PPU. Fighter scenarios cover idle, movement, jump, jab, special, hurt, and recovery; Rizer includes all four curl poses. See [`fighter_tas.lua`](https://github.com/cadebrown/smashdotnes/blob/main/nessy/tools/emulator/suite/fighter_tas.lua).
+
+The source generator and the verification boundary are covered next in [testing](/docs/testing/).

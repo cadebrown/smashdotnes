@@ -1,0 +1,33 @@
+---
+title: Website
+description: Local site commands, content locations, typography, and staged runtime assets.
+sidebar:
+  label: Website
+  order: 4
+---
+
+The site is Astro with Starlight. Use the repository targets to keep the browser player synchronized with the current ROM:
+
+```bash
+make web-dev
+make test-web
+make ci-pages
+```
+
+`make web-dev` builds and stages the ROM, installs the locked web dependencies, and starts Astro on port 8080. For an already prepared workspace, `npm --prefix web run dev -- --port 8082` starts the same development script on another port. `make ci-pages` builds the static site and copies `web/dist` to `site/`; it does not publish.
+
+## Source locations
+
+| Route | Source | Purpose |
+| --- | --- |
+| Home `/` | `web/src/pages/index.astro` | Starting point and current journal entry |
+| Play `/play/` | `web/src/pages/play.astro` | Browser player and ROM download |
+| Book `/book/` | `web/src/content/docs/book/` | Ordered teaching chapters |
+| Docs `/docs/` | `web/src/content/docs/docs/` | Practical reference pages |
+| Blog `/blog/` | `web/src/content/docs/blog/` | Dated development journal |
+| Build `/info/` | `web/src/pages/info.astro` | ROM and source provenance |
+| Design `/design/` | `web/src/pages/design.astro` | Theme workshop |
+
+`web/scripts/stage-assets.mjs` recreates `web/.public/` for each build. It copies the public assets and ROM, exposes native captures under `snaps/`, copies build metadata and input focus code, and stages the four fighter PNG sheets. Astro then builds from that generated tree.
+
+The current site uses Cartridge for headings and labels, Arial for prose, and Courier for utility text. Anton is limited to workshop and learning-lab display work. Its palette is worn cartridge plastic and paper, dark ink, faded greens, gold, and red signal accents, with CRT and print-wear textures. The [assets reference](/docs/assets/) lists the shipped formats and regeneration boundary.

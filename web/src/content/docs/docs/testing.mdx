@@ -1,0 +1,33 @@
+---
+title: Testing
+description: Commands, reports, and the exact evidence each local check provides.
+sidebar:
+  label: Testing
+  order: 3
+---
+
+Run commands from the repository root. Start with the toolchain check, then choose the smallest target that exercises the change.
+
+```bash
+make doctor
+make build
+make test-emu
+make test-web
+```
+
+`make build` generates fighter and music inputs, builds `out/smash.nes`, and inspects its iNES header. `make test-emu` runs the manifest-driven MAME scenarios against that ROM. `make test-web` rebuilds and stages the ROM, runs Astro checks and the production build, then drives the built site with Playwright.
+
+## Focused checks
+
+| Need | Command | Evidence |
+| --- | --- | --- |
+| Native captures and PCM | `make capture-audio` | Seven validated 256×240 PNGs and `out/reports/emulator/smash_audio.wav` |
+| Theme loop | `make capture-theme` | `out/reports/emulator/melee_theme.wav` and a PASS report |
+| Fighter poses | `make tas` | Per-fighter screenshots and contact sheets under `out/reports/emulator/artifacts/` |
+| Independent emulator | `make test-fceux` | FCEUX report under `out/reports/fceux/` |
+| Full local gate | `make test` | Rust, doctest, MAME, and browser results |
+| Deployment-shaped tree | `make ci-pages` | `site/`, checked against `web/dist` without publishing |
+
+The MAME scenarios observe the ROM’s small `$06E0` test export and save native frames. Browser checks wait for EmulatorJS to run, send mapped input, compare canvas frames, and verify that Tab leaves the player. Read [architecture](/book/#a-narrow-test-abi) for the exported fields.
+
+Reports live in `out/reports/emulator/summary.json`, `out/reports/web/summary.json`, and their adjacent logs, screenshots, and Playwright traces. A passing local check establishes the assertions for its built artifact; inspect the reports before treating it as evidence for hardware or a deployed URL.

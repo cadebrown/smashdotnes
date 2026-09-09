@@ -1,0 +1,14 @@
+---
+import { roster } from '../../data/roster';
+interface Props { id: typeof roster[number]['id']; }
+const { id } = Astro.props;
+const fighter = roster.find(fighter => fighter.id === id)!;
+const scale = 3;
+const style = `width:${fighter.width*scale}px;height:${fighter.height*scale}px;background-image:url('/assets/fighters/${id}.png');background-size:${fighter.frames*32*scale}px ${40*scale}px;background-position:${-(fighter.pose*32+fighter.x)*scale}px ${-fighter.y*scale}px`;
+---
+<figure class="book-portrait not-content" aria-label={`${fighter.name} original fighter sprite`} role="img"><span style={style}></span></figure>
+<style>
+  .book-portrait{float:right;display:flex;align-items:flex-end;justify-content:center;width:112px;min-height:128px;margin:0 0 16px 20px;padding:8px;border-bottom:3px solid var(--gold);background:var(--diagram-bg)}
+  .book-portrait span{display:block;background-repeat:no-repeat;image-rendering:pixelated}
+  @media(max-width:420px){.book-portrait{float:none;margin:18px 0;width:100%;min-height:128px}}
+</style>

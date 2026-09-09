@@ -1,0 +1,33 @@
+---
+title: Music, scenes, and sound cues
+description: A frame-driven NES score with small gameplay cues and observable timing.
+sidebar:
+  label: Audio
+  order: 9
+---
+The music path is data-driven, but it remains tied to the game’s 60 Hz update cadence. `nessy/assets/music.toml` represents a locked MIDI-derived arrangement as patterns for pulse 1, pulse 2, triangle, and noise; generation produces the tables consumed by [`src/music.c`](https://github.com/cadebrown/smashdotnes/blob/main/src/music.c).
+
+<aside class="book-exercise"><strong>Try it: listen across scenes.</strong><p>Wait on title, enter the lobby, then start a match. The menu theme keeps its position rather than restarting at each scene change.</p></aside>
+
+## A score is scheduled in game frames
+
+The importer converts cumulative MIDI ticks into variable durations of one or more NTSC frames. It validates voice lengths, pattern references, loop boundary, note names, tempo, and APU controls before emitting source. The documented score target is 154.113 BPM over a 2,995-frame loop, with 926 runtime events. The exact import policy lives in [`rebuild_music.py`](https://github.com/cadebrown/smashdotnes/blob/main/nessy/tools/music/rebuild_music.py).
+
+The runtime advances music once per main-loop frame. Scene state changes title/lobby/battle debug context, while the generated menu theme keeps its position across those transitions. This avoids a scene transition resetting the musical loop.
+
+## Cues share a constrained audio machine
+
+Jump, menu, hit, and KO call [`music_sfx()`](https://github.com/cadebrown/smashdotnes/blob/main/src/music.c) with deterministic priority. A cue temporarily takes the noise channel: `set_noise()` withholds music percussion while `sfx_frames` is nonzero. Pulse 1, pulse 2, and triangle continue the arrangement. Phase-reset-sensitive high APU register writes are avoided where they would create audible clicks.
+
+## What the checks observe
+
+The audio smoke scenario reads the test ABI’s music scene, event index, and last sound-effect byte while it transitions through scenes and triggers a jump. The cadence suite also verifies that an active 360-frame battle produces 360 game updates with no stalls or catch-up frames. Those checks establish runtime progression and observed APU output under the tested emulator; they do not certify every console/APU revision or speaker.
+
+<details>
+<summary>Which music channel does a hit borrow?</summary>
+
+The cue temporarily takes the noise channel; pulse 1, pulse 2, and triangle continue the arrangement.
+
+</details>
+
+For the test harness contract, continue to [testing and evidence](/docs/testing/).

@@ -1,0 +1,6 @@
+@import '@fontsource/caveat/latin-600.css';
+:root { --manual-hand:'Caveat','Comic Sans MS',cursive; --manual-red:#9b392c; --manual-paper:#e7ddbf; --manual-ink:#263a35; }
+.manual-hand { font:600 26px/1.1 var(--manual-hand); }
+.book-cover .manual-margin-note { display:block; position:relative; margin-top:20px; padding-left:38px; color:var(--manual-red); font:600 26px/1.1 var(--manual-hand); text-decoration:none; transform:rotate(-3deg); }
+.manual-margin-note svg { position:absolute; left:0; top:-14px; width:30px; height:44px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+.manual-margin-note:hover { text-decoration:underline; text-underline-offset:5px; }

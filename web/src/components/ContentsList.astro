@@ -1,0 +1,9 @@
+---
+import type { CollectionEntry } from 'astro:content';
+interface Props { entries: CollectionEntry<'docs'>[]; ordered?: boolean; }
+const { entries, ordered = false } = Astro.props;
+const List = ordered ? 'ol' : 'ul';
+---
+<List class:list={['contents-list', { 'chapter-list': ordered }]}>
+  {entries.map(entry => <li><a href={`/${entry.id}/`}><span>{entry.data.title}</span><small>{entry.data.description}</small></a></li>)}
+</List>

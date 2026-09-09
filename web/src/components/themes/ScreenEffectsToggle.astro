@@ -1,0 +1,5 @@
+---
+interface Props { class?: string; }
+const { class: className = '' } = Astro.props;
+---
+<button type="button" class:list={['site-screen-fx', className]} aria-label="Screen effects" aria-pressed="true" data-screen-effects-toggle data-screen-fx-toggle><span class="fx-lamp" aria-hidden="true"></span><span>SCREEN FX <span data-screen-fx-label>ON</span></span></button>

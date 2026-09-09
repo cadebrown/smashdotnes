@@ -1,0 +1,38 @@
+<section class="lab" data-trajectory-lab aria-labelledby="trajectory-title">
+  <div class="lab-heading"><p class="eyebrow">Executable reading aid</p><h2 id="trajectory-title">Jump trajectory lab</h2><p>Step through the same integer rules used for a fighter: an accepted jump sets <code>vy = -9</code>; gravity adds one every second game frame until <code>vy = 6</code>. This is an explanatory trace, not ROM execution.</p></div>
+  <div class="controls">
+    <label><span>Experiment starting vertical speed (ROM jump starts at -9)</span><input data-vy type="range" min="-12" max="-4" value="-9" /><output data-vy-output>-9</output></label>
+    <button type="button" data-reset>Reset trace</button>
+    <button type="button" data-step>Advance one update</button>
+    <button type="button" data-run>Run 40 updates</button>
+  </div>
+  <div class="readout" aria-live="polite"><strong data-status>frame 0 · y 143 · vy -9</strong><span>Ground contact: y 143</span></div>
+  <svg data-chart viewBox="0 0 560 180" role="img" aria-label="A chart of vertical position over simulated game updates"><path class="axis" d="M30 12V150H548"/><text class="axis-label" x="290" y="174">game updates →</text><text class="axis-label" transform="translate(11 93) rotate(-90)">screen Y</text><path data-path class="trace" d=""/><line data-ground class="ground" x1="30" y1="150" x2="548" y2="150"/><text data-y-top class="tick" x="3" y="18"></text><text data-y-ground class="tick" x="3" y="148">143</text><text data-x-end class="tick" x="548" y="164" text-anchor="end">40</text></svg>
+  <ol data-events class="events" aria-label="Recent trajectory updates"></ol>
+</section>
+<script>
+  type Trace = { frame: number; y: number; vy: number; grounded: boolean; points: Array<[number, number]>; log: string[] };
+  const root = document.querySelector<HTMLElement>('[data-trajectory-lab]');
+  if (root) {
+    const start = root.querySelector<HTMLInputElement>('[data-vy]');
+    const output = root.querySelector<HTMLOutputElement>('[data-vy-output]');
+    const status = root.querySelector<HTMLElement>('[data-status]');
+    const path = root.querySelector<SVGPathElement>('[data-path]');
+    const events = root.querySelector<HTMLOListElement>('[data-events]');
+    const topLabel = root.querySelector<SVGTextElement>('[data-y-top]'); const endLabel = root.querySelector<SVGTextElement>('[data-x-end]');
+    const resetButton = root.querySelector<HTMLButtonElement>('[data-reset]');
+    const stepButton = root.querySelector<HTMLButtonElement>('[data-step]');
+    const runButton = root.querySelector<HTMLButtonElement>('[data-run]');
+    if (start && output && status && path && events && topLabel && endLabel && resetButton && stepButton && runButton) {
+      const startInput = start; const outputNode = output; const statusNode = status; const pathNode = path; const eventsNode = events; const topNode = topLabel; const endNode = endLabel;
+      let state: Trace;
+      function reset() { state = { frame: 0, y: 143, vy: Number(startInput.value), grounded: false, points: [], log: [] }; draw(); }
+      function tick() { if (state.grounded) return; if (state.frame % 2 === 0 && state.vy < 6) state.vy += 1; state.y += state.vy; state.frame += 1; if (state.vy >= 0 && state.y >= 143) { state.y = 143; state.vy = 0; state.grounded = true; } state.points.push([state.frame, state.y]); state.log.unshift(`update ${state.frame}: y ${state.y}, vy ${state.vy}${state.grounded ? ' — landed' : ''}`); state.log = state.log.slice(0, 5); draw(); }
+      function draw() { outputNode.value = startInput.value; statusNode.textContent = `frame ${state.frame} · y ${state.y} · vy ${state.vy}${state.grounded ? ' · landed' : ''}`; const points: Array<[number, number]> = [[0, 143], ...state.points]; const maxY = 143, minY = Math.min(80, ...points.map(([, y]) => y)); const maxX = Math.max(40, state.frame); const scaleY = (y: number) => 14 + ((y - minY) / Math.max(1, maxY - minY)) * 136; topNode.textContent = String(minY); endNode.textContent = String(maxX); pathNode.setAttribute('d', points.map(([x, y], index) => `${index ? 'L' : 'M'} ${30 + (x / maxX) * 518} ${scaleY(y)}`).join(' ')); eventsNode.innerHTML = state.log.map((entry: string) => `<li>${entry}</li>`).join(''); }
+      resetButton.addEventListener('click', reset); stepButton.addEventListener('click', tick); runButton.addEventListener('click', () => { for (let index = 0; index < 40 && !state.grounded; index += 1) tick(); }); startInput.addEventListener('input', reset); reset();
+    }
+  }
+</script>
+<style>
+  .lab{background-color:color-mix(in srgb,var(--sl-color-bg) 92%,var(--gold,#d6af56));background-image:var(--grit);border:2px solid var(--sl-color-gray-4);border-inline-start:6px solid var(--ember,#ed603e);margin:2rem 0;padding:1.2rem}.lab h2{margin:.2rem 0}.lab p{max-width:68ch}.eyebrow{color:var(--gold,#d6af56);font:16px/1 var(--pixel,monospace);letter-spacing:.08em;text-transform:uppercase}.controls{display:flex;flex-wrap:wrap;gap:.8rem;align-items:center}.controls label{display:flex;gap:.5rem;align-items:center;font-size:.88rem}.controls button{border:2px solid var(--gold,#d6af56);border-radius:0;background:var(--sl-color-bg);color:var(--sl-color-white);font-family:var(--display,Impact,sans-serif);letter-spacing:.05em;padding:.45rem .65rem;text-transform:uppercase}.controls button:hover{background:var(--ember,#ed603e);color:var(--on-emphasis)}.controls input{accent-color:var(--ember,#ed603e)}.readout{border-block:1px solid var(--sl-color-gray-4);display:flex;justify-content:space-between;gap:.8rem;margin:1rem 0;padding:.6rem 0;font-family:var(--mono);font-size:.82rem}.readout span{color:var(--sl-color-gray-2)}svg{width:100%;background:var(--diagram-bg);border:2px solid var(--sl-color-gray-4)}.axis{stroke:var(--sl-color-gray-3);fill:none}.axis-label,.tick{font:11px var(--mono);fill:var(--sl-color-gray-2)}.ground{stroke:var(--ember,#ed603e);stroke-dasharray:4}.trace{stroke:var(--gold,#d6af56);stroke-width:3;fill:none}.events{font:normal .78rem var(--mono);padding-left:1.2rem}@media(max-width:560px){.readout{flex-direction:column}.eyebrow{font-size:8px}}
+</style>

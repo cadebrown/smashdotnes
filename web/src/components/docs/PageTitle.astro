@@ -1,0 +1,11 @@
+---
+import PageTitle from '@astrojs/starlight/components/PageTitle.astro';
+import { formatDate } from '../../data/sections';
+const { date } = Astro.locals.starlightRoute.entry.data;
+const entry = Astro.locals.starlightRoute.entry;
+const chapter = entry.id.startsWith('book/') ? entry.data.sidebar.order : undefined;
+---
+{chapter && <p class="book-chapter-kicker"><a href="/book/">The Book</a><span aria-hidden="true"> / </span><span>Chapter {String(chapter).padStart(2,'0')} · {chapter<=4?'Learn the fight':'Inside the cartridge'}</span></p>}
+<PageTitle />
+{date && <p class="post-date"><time datetime={date.toISOString()}>{formatDate(date)}</time></p>}
+<style>.post-date{color:var(--sl-color-gray-2);font:400 12px/1.5 var(--mono)}</style>

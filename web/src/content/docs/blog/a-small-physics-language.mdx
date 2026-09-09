@@ -1,0 +1,17 @@
+---
+title: A small physics language
+description: Why fixed integer rules make recovery, knockback, and test traces easier to learn and verify.
+date: 2026-09-08
+template: splash
+prev: false
+next: false
+---
+SmashDotNES does not hide its motion behind a large physics engine. A held direction moves two pixels. A newly pressed jump assigns `vy = -9`; gravity increments velocity every second frame until it reaches 6; position advances by velocity. Landing is a downward crossing of a fixed one-way platform plane. A KO is leaving a left, right, or bottom bound and resetting to spawn.
+
+Those choices make a concrete learning loop. A player can walk off the edge, steer inward, spend the first jump, then release and press Up for the second. There is no variable jump height, ledge grab, directional influence, or hidden rescue state to account for. The CPU uses the same basic jump stock, though it has a recovery routine that deliberately steers inward.
+
+Damage adds a second compact rule: each hit computes horizontal launch from the new accumulated damage, `4 + (damage >> 4)`, with a cap at 14, and lets that horizontal velocity decay by one toward zero. It means high damage visibly creates space without needing a percentage-to-force curve that is hard to inspect. Special projectiles create different paths around the shared rules: Mario’s low bounce, Simon’s accelerating axe, and Rizer’s straight bullet.
+
+The interactive [trajectory lab](/docs/physics/) is intentionally modest. It traces the exact vertical arithmetic in isolation and marks the limitations: it does not run the cartridge or model every interaction that can change a fighter’s state. Its job is to make the source code readable before a person tries the real movement in the player.
+
+Source trail: [`update_fighter_input()` and physics](https://github.com/cadebrown/smashdotnes/blob/main/src/main.c), plus the documented [runtime loop](https://github.com/cadebrown/smashdotnes/blob/main/docs/architecture.md).

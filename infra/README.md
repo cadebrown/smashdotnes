@@ -50,7 +50,7 @@ All OpenTofu config for this site lives in one directory:
 ## What this does
 
 * Creates/updates the Cloudflare Pages project `smashdotnes`
-* Configures Cloudflare Pages to build the ROM and stage the exact static `web/public` tree
+* Configures Cloudflare Pages to build the ROM and Astro/Starlight site, then stage the exact `web/dist` tree
 * Binds `smash.cade.io` to the Pages project
 * Creates/updates DNS record for `smash.cade.io`
 

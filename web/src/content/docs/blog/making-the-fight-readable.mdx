@@ -1,0 +1,19 @@
+---
+title: Making the fight readable at 60 Hz
+description: Compact animation data, packed OAM, and the fairness detail hidden in a paired contact check.
+date: 2026-09-08
+template: splash
+prev: false
+next: false
+---
+The important visual question was not “how many poses can fit?” It was “can a player read action, contact, and recovery at the exact rate the game can sustain?” The answer starts with a smaller runtime representation than the source sheets suggest.
+
+Each fighter sheet is a fixed 32×40 canvas. The asset pipeline slices it into 8×8 cells, drops transparent cells, deduplicates tile payloads, and recognizes flips. Instead of sweeping every canvas cell per frame, the ROM walks only a packed list of visible sprite commands. That uses memory for authored data so the 6502 spends less time discovering empty space.
+
+Animation carries game information. Jab and special frame sequences expose startup, active, and recovery, while the character TOML files declare timing and active windows. The C runtime gives them a strict priority: hurt pose, Rizer airborne curl, special, jab, regular airborne pose, walk, idle. A visible whip can add sprite segments while its active phase is on screen, but its collision still comes from a compact rectangle. That distinction keeps art expressive without making contact unknowable.
+
+The less visible design detail is the order of contact detection. Both melee overlaps are calculated first, then each successful hit is applied. If we applied P1’s hit before looking at P2’s, P1 would erase P2’s timer and receive an accidental priority advantage. The paired snapshot means two active attacks trade; a hit that arrives during startup still cancels it. That is a rule players can learn from the spark and hurt pose together.
+
+The [rendering chapter](/docs/rendering/) has the source-grounded animation viewer, and [combat](/docs/contact/) spells out the rectangles and timers.
+
+Source trail: [fighter generator](https://github.com/cadebrown/smashdotnes/blob/main/nessy/src/chr.rs), [Mario animation data](https://github.com/cadebrown/smashdotnes/blob/main/src/chars/mario/character.toml), and [battle draw/contact code](https://github.com/cadebrown/smashdotnes/blob/main/src/main.c).

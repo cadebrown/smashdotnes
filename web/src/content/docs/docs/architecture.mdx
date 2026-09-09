@@ -1,0 +1,52 @@
+---
+title: Runtime architecture
+description: The boundaries, frame order, and observable contract behind one small NES fighter.
+sidebar:
+  label: Architecture
+  order: 5
+---
+import BuildPipeline from '../../../components/learning/BuildPipeline.astro';
+
+SmashDotNES is a cartridge program first. The browser player distributes the same `smash.nes` file that the emulator suite drives; it is not a JavaScript remake of the fight rules.
+
+<aside class="book-exercise"><strong>Trace one action.</strong><p>Press J in the player, then follow the route: browser mapping → NES controller read → action timer → contact check → next OAM frame.</p></aside>
+
+<BuildPipeline />
+
+## Four boundaries with one artifact
+
+The [game runtime](https://github.com/cadebrown/smashdotnes/blob/main/src/main.c) owns scenes, input, combat, physics, and rendering. It delegates APU register writes and score playback to [`music.c`](https://github.com/cadebrown/smashdotnes/blob/main/src/music.c). `nessy` compiles fighter and music source data into C/assembly includes, invokes the ROM build, inspects the result, and runs emulator scenarios. The static web tree receives the ROM and local EmulatorJS assets. That separation gives the site a useful promise: a web input eventually reaches the same controller-reading code as an emulator input.
+
+The boundaries also limit what evidence means. A passing browser test proves the packaged local ROM started and accepted mapped input. A passing MAME test proves the scenario ran in that emulator. Neither proves a public deployment is current or that a physical cartridge behaves identically.
+
+## The frame contract
+
+Battle update order is intentional rather than incidental:
+
+1. VBlank transfers the OAM frame prepared last update and refreshes changed HUD tiles.
+2. The game samples controllers, ages sparks, and decreases action timers.
+3. Player or CPU input changes movement, jump, and action state.
+4. Both melee contacts are found from the same snapshot, then projectiles move and collide.
+5. Physics resolves velocity, the one-way platform, knockback decay, and KOs.
+6. Music advances; the next OAM frame and test export are prepared.
+
+That ordering is visible in [`update_battle()`](https://github.com/cadebrown/smashdotnes/blob/main/src/main.c) and protects a concrete fairness rule: two already-active melee attacks can trade. A contact detected after one hit has applied would accidentally give the first player priority.
+
+<details>
+<summary>Why find both contacts before applying either?</summary>
+
+It gives both active attacks the same state snapshot. Otherwise the first applied hit could cancel the other attack before it was checked.
+
+</details>
+
+## A narrow test ABI
+
+The runtime writes 32 bytes beginning at CPU RAM `$06E0`: signature, scene, frame counter, pads, fighter positions, damage, KO counters, timers, rendered frame IDs, and a bounded OAM/effect summary. It is an intentionally small observation surface for Lua scenarios, documented in [`docs/architecture.md`](https://github.com/cadebrown/smashdotnes/blob/main/docs/architecture.md). It is not save data or a gameplay scripting API.
+
+The useful consequence is diagnostic precision. A scenario can distinguish “the input was sampled” from “a projectile was active” from “the expected rendered frame reached OAM” without attempting to infer those facts from a screenshot alone.
+
+## Three scenes, no hidden match layer
+
+The state model is title → lobby → battle. Returning to the title rebuilds menu presentation; starting a match resets fighters, projectiles, effects, damage, and KO counters. Current battle mode has no stock limit, timer, winner screen, or advancing round state. The scene labels and `ROUND 01` art should therefore be read as presentation, not tournament rules.
+
+Next: inspect the [integer physics](/docs/physics/), [combat contact](/docs/contact/), and [render path](/docs/rendering/).

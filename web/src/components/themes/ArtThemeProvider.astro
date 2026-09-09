@@ -1,0 +1,55 @@
+---
+import '../../styles/art-themes.css';
+import '../../styles/rental-site.css';
+---
+<script is:inline>
+  (() => {
+    const storageKey = 'smash-art-theme';
+    const themeIds = ['a', 'b', 'c', 'd'];
+    const validTheme = (theme) => themeIds.includes(theme) ? theme : null;
+    const themeFromLocation = () => validTheme(new URLSearchParams(window.location.search).get('theme'));
+    const storedTheme = () => { try { return validTheme(localStorage.getItem(storageKey)); } catch { return null; } };
+    const isWorkshop = window.location.pathname === '/design/';
+    const selectedTheme = () => isWorkshop ? themeFromLocation() || storedTheme() || 'b' : 'b';
+    try { document.documentElement.dataset.screenFx = localStorage.getItem('smash-screen-fx') === 'off' ? 'off' : 'on'; } catch { document.documentElement.dataset.screenFx = 'on'; }
+    const updateBrowserColor = () => {
+      const meta = document.querySelector('meta[name="theme-color"]');
+      const paper = getComputedStyle(document.documentElement).getPropertyValue('--paper').trim();
+      if (meta && paper) meta.setAttribute('content', paper);
+    };
+    const setAttribute = (theme) => { document.documentElement.dataset.artTheme = validTheme(theme) || 'b'; if (document.readyState !== 'loading') updateBrowserColor(); };
+    const syncControls = (theme) => document.querySelectorAll('[data-art-theme-control]').forEach((control) => {
+      const selected = control.getAttribute('data-art-theme-control') === theme;
+      control.setAttribute('aria-checked', String(selected)); control.tabIndex = selected ? 0 : -1;
+    });
+    const storeTheme = (theme) => { try { localStorage.setItem(storageKey, theme); } catch {} };
+    const setTheme = (theme, { updateUrl = true } = {}) => {
+      const nextTheme = isWorkshop ? validTheme(theme) || 'b' : 'b'; setAttribute(nextTheme); syncControls(nextTheme); storeTheme(nextTheme);
+      if (updateUrl) { const url = new URL(window.location.href); url.searchParams.set('theme', nextTheme); history.replaceState(history.state, '', `${url.pathname}${url.search}${url.hash}`); }
+    };
+    const initialTheme = selectedTheme();
+    setAttribute(initialTheme);
+    if (isWorkshop && themeFromLocation()) storeTheme(initialTheme);
+    window.SmashArtTheme = { setTheme, selectedTheme };
+    const connect = () => {
+      updateBrowserColor();
+      if (window.__smashArtThemeConnected) { syncControls(document.documentElement.dataset.artTheme || 'b'); return; }
+      window.__smashArtThemeConnected = true; syncControls(document.documentElement.dataset.artTheme || 'b');
+      document.addEventListener('click', (event) => { const control = event.target.closest('[data-art-theme-control]'); if (control) setTheme(control.getAttribute('data-art-theme-control')); });
+      document.addEventListener('keydown', (event) => {
+        const control = event.target.closest('[data-art-theme-control]');
+        if (!control || !['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'].includes(event.key)) return;
+        event.preventDefault(); const controls = [...control.closest('[role="radiogroup"]').querySelectorAll('[data-art-theme-control]')]; const index = controls.indexOf(control);
+        const nextIndex = event.key === 'Home' ? 0 : event.key === 'End' ? controls.length - 1 : (index + (event.key === 'ArrowRight' || event.key === 'ArrowDown' ? 1 : -1) + controls.length) % controls.length;
+        const nextControl = controls[nextIndex]; setTheme(nextControl.getAttribute('data-art-theme-control')); nextControl.focus();
+      });
+      window.addEventListener('popstate', () => setTheme(selectedTheme(), { updateUrl: false }));
+    };
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', connect, { once: true }); else connect();
+  })();
+</script>
+
+<script>
+  import { initScreenEffects } from '../../scripts/screen-effects';
+  initScreenEffects();
+</script>

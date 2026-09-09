@@ -1,0 +1,10 @@
+---
+import SiteLayout from '../layouts/SiteLayout.astro';
+import ContentsList from '../components/ContentsList.astro';
+import { sectionEntries } from '../data/sections';
+const pages = await sectionEntries('docs');
+---
+<SiteLayout title="Docs" description="Build commands, asset formats, testing, and website reference for Smash.NES.">
+  <header class="page-intro"><h1>Docs</h1><p>Commands and reference for working on the game.</p></header>
+  <ContentsList entries={pages} />
+</SiteLayout>

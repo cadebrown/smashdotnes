@@ -1,0 +1,38 @@
+---
+import ArtThemeProvider from '../themes/ArtThemeProvider.astro';
+---
+<ArtThemeProvider />
+{/* Inline this so documentation starts dark before its first paint. */}
+<script is:inline>
+	window.StarlightThemeProvider = (() => {
+		const storedTheme =
+			typeof localStorage !== 'undefined' && localStorage.getItem('starlight-theme');
+		const theme =
+			storedTheme === 'light' || storedTheme === 'dark'
+				? storedTheme
+				: storedTheme === 'auto' && window.matchMedia('(prefers-color-scheme: light)').matches
+					? 'light'
+					: 'dark';
+		document.documentElement.dataset.theme = theme;
+		return {
+			updatePickers(theme = storedTheme === 'light' || storedTheme === 'dark' || storedTheme === 'auto' ? storedTheme : 'dark') {
+				document.querySelectorAll('starlight-theme-select').forEach((picker) => {
+					const select = picker.querySelector('select');
+					if (select) select.value = theme;
+					const tmpl = document.querySelector('#theme-icons');
+					const newIcon = tmpl && tmpl.content.querySelector('.' + theme);
+					if (newIcon) {
+						const oldIcon = picker.querySelector('svg.label-icon');
+						if (oldIcon) oldIcon.replaceChildren(...newIcon.cloneNode(true).childNodes);
+					}
+				});
+			},
+		};
+	})();
+</script>
+
+<template id="theme-icons">
+	<svg class="light" viewBox="0 0 24 24"><path d="M12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10Zm0-5v3m0 14v3M2 12h3m14 0h3M4.9 4.9 7 7m10 10 2.1 2.1M19.1 4.9 17 7M7 17l-2.1 2.1" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" /></svg>
+	<svg class="dark" viewBox="0 0 24 24"><path d="M21 14.2A8.2 8.2 0 0 1 9.8 3a8.5 8.5 0 1 0 11.2 11.2Z" fill="currentColor" /></svg>
+	<svg class="auto" viewBox="0 0 24 24"><path d="M4 5h16v10H4zM2 17h20M9 20h6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" /></svg>
+</template>

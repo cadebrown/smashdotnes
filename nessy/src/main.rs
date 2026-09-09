@@ -1121,8 +1121,8 @@ fn render_doc_html_page(title: &str, body_html: &str, markdown_rel_path: &Path) 
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#070808" />
-    <meta name="color-scheme" content="dark" />
+    <meta name="theme-color" content="#e6e7e2" />
+    <meta name="color-scheme" content="light" />
     <meta name="description" content="Smash.NES technical manual: {title}." />
     <title>{title} — Smash.NES Manual</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22><rect width=%2232%22 height=%2232%22 rx=%224%22 fill=%22%23070808%22/><path d=%22M7 9h18v4H11v3h12v4H11v3h14v4H7z%22 fill=%22%23e64b31%22/></svg>" />
@@ -1133,23 +1133,20 @@ fn render_doc_html_page(title: &str, body_html: &str, markdown_rel_path: &Path) 
     <main id="main" class="page-shell">
       <header class="topbar">
         <a class="brand" href="/" aria-label="Smash.NES home">
-          <span class="power-led" aria-hidden="true"></span>
           <span>SMASH.NES</span>
         </a>
         <nav class="topnav" aria-label="Primary navigation">
-          <a href="/play/">Play</a>
+          <a href="/">Play</a>
           <a href="/docs/" aria-current="page">Manual</a>
           <a href="/info/">Build</a>
         </nav>
       </header>
       <section class="panel page-copy">
-        <p class="eyebrow">Technical manual</p>
         <h1 class="page-title">{title}</h1>
-        <p class="muted doc-meta">source: {markdown_rel_display}</p>
         <article class="doc-article">
 {body_html}
         </article>
-        <p class="muted">Source markdown: <a href="{markdown_source_url}">{markdown_rel_display}</a></p>
+        <p class="muted doc-source">Source markdown: <a href="{markdown_source_url}">{markdown_rel_display}</a></p>
       </section>
     </main>
   </body>

@@ -1,0 +1,30 @@
+---
+import AnnotatedScreenshot from './AnnotatedScreenshot.astro';
+import { manualAnnotations, type ManualScene } from '../../data/manual-annotations';
+interface Props {
+  id: string;
+  title: string;
+  scenes: ManualScene[];
+  class?: string;
+}
+const { id, title, scenes, class: className } = Astro.props;
+---
+<figure class:list={['manual-sequence', 'not-content', className]} aria-labelledby={`${id}-caption`}>
+  <figcaption id={`${id}-caption`}>{title}</figcaption>
+  <ol>
+    {scenes.map((scene,index) => <li>
+      <h4><span>{index + 1}</span>{manualAnnotations[scene].title}</h4>
+      <AnnotatedScreenshot scene={scene} compact id={`${id}-${scene}`} />
+    </li>)}
+  </ol>
+</figure>
+<style>
+  .manual-sequence{margin:32px 0}
+  .manual-sequence>figcaption{margin-bottom:20px;color:#e5c36f;font:600 34px/1.1 var(--manual-hand)}
+  .manual-sequence>ol{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;padding:0;list-style:none;margin:0}
+  .manual-sequence>ol:has(>li:last-child:nth-child(2)){grid-template-columns:repeat(2,minmax(0,1fr))}
+  .manual-sequence>ol>li{min-width:0;padding:0;margin:0}
+  h4{display:flex;align-items:center;gap:10px;margin:0 0 14px;font:400 23px/1.1 var(--display);color:#e7dbbb}
+  h4 span{display:grid;place-items:center;width:27px;height:29px;background:#a3402a;color:#efe0b5;font-size:19px;transform:rotate(-4deg)}
+  @media(max-width:700px){.manual-sequence>ol,.manual-sequence>ol:has(>li:last-child:nth-child(2)){grid-template-columns:1fr;gap:26px}.manual-sequence>figcaption{font-size:30px}}
+</style>

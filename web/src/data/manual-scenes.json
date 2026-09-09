@@ -1,0 +1,337 @@
+{
+  "title": {
+    "image": "01_title",
+    "alt": "Smash title screen showing a mode-selection box over a blue sky, with P1 VS P2 selected.",
+    "title": "Choose the match.",
+    "caption": "The title screen begins at the mode list.",
+    "annotations": [
+      {
+        "label": "A",
+        "note": "W / S picks a mode.",
+        "x": 83,
+        "y": 131,
+        "badgeX": 12,
+        "badgeY": 126
+      },
+      {
+        "label": "B",
+        "note": "Enter or J opens fighter select.",
+        "x": 128,
+        "y": 114,
+        "badgeX": 244,
+        "badgeY": 112
+      }
+    ]
+  },
+  "lobby": {
+    "image": "02_lobby",
+    "alt": "Fighter lobby showing Mario, Simon, Tommy, and Rizer in a two-by-two selection grid, with Simon selected in green.",
+    "title": "Pick a fighter.",
+    "caption": "The lobby holds all four fighters in one connected grid.",
+    "annotations": [
+      {
+        "label": "A",
+        "note": "The red frame is P1. A / D chooses a fighter.",
+        "x": 68,
+        "y": 80,
+        "badgeX": 12,
+        "badgeY": 76,
+        "tag": "YOU",
+        "tagX": 8,
+        "tagY": 54
+      },
+      {
+        "label": "B",
+        "note": "The green frame belongs to P2.",
+        "x": 187,
+        "y": 80,
+        "badgeX": 244,
+        "badgeY": 76,
+        "tag": "P2",
+        "tagX": 225,
+        "tagY": 54
+      },
+      {
+        "label": "C",
+        "note": "Enter or J starts the fight.",
+        "x": 128,
+        "y": 219,
+        "badgeX": 244,
+        "badgeY": 211
+      }
+    ]
+  },
+  "battle": {
+    "image": "03_battle",
+    "alt": "Opening battle screen with Mario on the left, Simon on the right, both at zero percent, and a single brick platform between them.",
+    "title": "The round opens clean.",
+    "caption": "Mario and Simon begin apart on one long platform.",
+    "annotations": [
+      {
+        "label": "A",
+        "note": "Damage is not health: a bigger % means a bigger shove.",
+        "x": 64,
+        "y": 36,
+        "badgeX": 64,
+        "badgeY": 12
+      },
+      {
+        "label": "B",
+        "note": "P1 starts on the left.",
+        "x": 64,
+        "y": 160,
+        "badgeX": 12,
+        "badgeY": 158
+      },
+      {
+        "label": "C",
+        "note": "Catch the top to land. Jump through it from below.",
+        "x": 128,
+        "y": 176,
+        "badgeX": 128,
+        "badgeY": 228
+      }
+    ]
+  },
+  "jump": {
+    "image": "05_jump",
+    "alt": "Mario rises over the left side of the platform while Simon stays grounded.",
+    "title": "Take to the air.",
+    "caption": "Mario is above the platform while Simon remains grounded.",
+    "annotations": [
+      {
+        "label": "A",
+        "note": "Up jumps. Release Up, then press it again for the second jump.",
+        "x": 82,
+        "y": 145,
+        "badgeX": 12,
+        "badgeY": 106
+      },
+      {
+        "label": "B",
+        "note": "Land on top to reset both jumps.",
+        "x": 128,
+        "y": 176,
+        "badgeX": 128,
+        "badgeY": 228
+      }
+    ]
+  },
+  "jab": {
+    "image": "06_jab",
+    "alt": "Mario extends his kick on the left. Simon stands beyond its reach, at zero damage.",
+    "title": "This jab misses.",
+    "caption": "The extended kick stops short; neither counter changes.",
+    "annotations": [
+      {
+        "label": "A",
+        "note": "Too far! The kick misses.",
+        "x": 91,
+        "y": 168,
+        "badgeX": 12,
+        "badgeY": 166,
+        "tag": "MISS",
+        "tagX": 12,
+        "tagY": 146
+      },
+      {
+        "label": "B",
+        "note": "Simon is still at 0% — no hit spark.",
+        "x": 192,
+        "y": 36,
+        "badgeX": 244,
+        "badgeY": 36
+      }
+    ]
+  },
+  "special": {
+    "image": "07_special",
+    "alt": "Mario on the left with a small fireball between him and Simon on the right; both damage counters remain at zero percent.",
+    "title": "A fireball crosses the gap.",
+    "caption": "Mario’s projectile is visible between the two fighters.",
+    "annotations": [
+      {
+        "label": "A",
+        "note": "K launches a fireball.",
+        "x": 98,
+        "y": 161,
+        "badgeX": 12,
+        "badgeY": 140,
+        "tag": "K · FIRE",
+        "tagX": 15,
+        "tagY": 123
+      },
+      {
+        "label": "B",
+        "note": "Follow the shot. Use J when you get close.",
+        "x": 82,
+        "y": 160,
+        "badgeX": 160,
+        "badgeY": 216
+      }
+    ]
+  },
+  "jump-press": {
+    "image": "08_jump_press",
+    "alt": "Mario leaves the ground after the first Up press. Simon remains on the platform.",
+    "title": "Press W",
+    "caption": "The first press lifts Mario off the platform.",
+    "annotations": [
+      {
+        "label": "A",
+        "note": "Tap W to leave the ground.",
+        "x": 64,
+        "y": 154,
+        "badgeX": 184,
+        "badgeY": 135,
+        "tag": "W DOWN",
+        "tagX": 185,
+        "tagY": 117
+      }
+    ]
+  },
+  "jump-release": {
+    "image": "09_jump_release",
+    "alt": "Mario falls after the first jump with Up released.",
+    "title": "Let go!",
+    "caption": "Up stays released as the first jump ends.",
+    "annotations": [
+      {
+        "label": "A",
+        "note": "Let go of W. You still have a jump.",
+        "x": 64,
+        "y": 130,
+        "badgeX": 184,
+        "badgeY": 134,
+        "tag": "W UP",
+        "tagX": 189,
+        "tagY": 116
+      }
+    ]
+  },
+  "jump-again": {
+    "image": "10_jump_again",
+    "alt": "A fresh Up press sends Mario upward again before he lands.",
+    "title": "Press W again",
+    "caption": "The second fresh press reverses the fall.",
+    "annotations": [
+      {
+        "label": "A",
+        "note": "Tap W again. Back up you go.",
+        "x": 64,
+        "y": 106,
+        "badgeX": 184,
+        "badgeY": 112,
+        "tag": "W AGAIN",
+        "tagX": 178,
+        "tagY": 94
+      }
+    ]
+  },
+  "hit": {
+    "image": "11_hit",
+    "alt": "Mario’s kick connects with Simon. A spark appears at contact, Simon rises in a hurt pose, and his damage reads 6%.",
+    "title": "That one lands.",
+    "caption": "Close the gap: the same jab now hits.",
+    "annotations": [
+      {
+        "label": "A",
+        "note": "J connects. Look for the spark.",
+        "x": 129,
+        "y": 158,
+        "badgeX": 12,
+        "badgeY": 133,
+        "tag": "CONTACT",
+        "tagX": 8,
+        "tagY": 116
+      },
+      {
+        "label": "B",
+        "note": "Simon goes from 0% to 6%.",
+        "x": 192,
+        "y": 36,
+        "badgeX": 244,
+        "badgeY": 36,
+        "tag": "6%",
+        "tagX": 220,
+        "tagY": 69
+      },
+      {
+        "label": "C",
+        "note": "The hit lifts Simon into his hurt pose.",
+        "x": 143,
+        "y": 151,
+        "badgeX": 244,
+        "badgeY": 147,
+        "tag": "HURT",
+        "tagX": 218,
+        "tagY": 130
+      }
+    ]
+  },
+  "simon-special": {
+    "image": "14_simon_special",
+    "alt": "Simon stands on the left while his thrown axe rises above the platform.",
+    "title": "Throw over their head.",
+    "caption": "Simon’s axe climbs before it falls.",
+    "annotations": [
+      {
+        "label": "A",
+        "note": "K throws the axe up and forward.",
+        "x": 85,
+        "y": 114,
+        "badgeX": 166,
+        "badgeY": 108,
+        "tag": "K · AXE",
+        "tagX": 174,
+        "tagY": 94
+      }
+    ]
+  },
+  "tommy-special": {
+    "image": "15_tommy_special",
+    "alt": "Tommy holds a high extended kick on the left. Simon stands on the right.",
+    "title": "Put a foot through the gap.",
+    "caption": "Tommy’s special is a kick.",
+    "annotations": [
+      {
+        "label": "A",
+        "note": "Press K for the longer kick. Keep steering.",
+        "x": 82,
+        "y": 146,
+        "badgeX": 168,
+        "badgeY": 121,
+        "tag": "K · KICK",
+        "tagX": 172,
+        "tagY": 104
+      }
+    ]
+  },
+  "rizer-special": {
+    "image": "16_rizer_special",
+    "alt": "Rizer curls in the air with a small bullet to his right. Simon remains grounded.",
+    "title": "Shoot on the way through.",
+    "caption": "Rizer fires without leaving his airborne curl.",
+    "annotations": [
+      {
+        "label": "A",
+        "note": "W, then K: the bullet travels straight.",
+        "x": 78,
+        "y": 140,
+        "badgeX": 166,
+        "badgeY": 111,
+        "tag": "K · SHOT",
+        "tagX": 171,
+        "tagY": 95
+      },
+      {
+        "label": "B",
+        "note": "He keeps the curl while airborne.",
+        "x": 64,
+        "y": 145,
+        "badgeX": 12,
+        "badgeY": 147
+      }
+    ]
+  }
+}

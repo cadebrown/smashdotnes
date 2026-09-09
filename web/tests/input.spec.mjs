@@ -68,7 +68,7 @@ test("focus release follows remapped controls and preserves toolbar input", asyn
     window.EJS_emulator.elements.parent.contains(document.activeElement)
   )).toBe(true);
   expect(await page.evaluate(() => window.inputProbe["0:7"])).toBe(1);
-  await page.getByRole("link", { name: "Build", exact: true }).focus();
+  await page.locator("[data-site-footer] a").first().focus();
   await expect.poll(() => page.evaluate(() => window.inputProbe["0:7"])).toBe(0);
   await page.keyboard.up("h");
 });

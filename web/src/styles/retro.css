@@ -1,0 +1,27 @@
+@import '@fontsource/anton/latin-400.css';
+
+@font-face {
+  font-family: 'Cartridge';
+  src: url('/assets/fonts/cartridge.woff2') format('woff2');
+  font-style: normal;
+  font-weight: 400 900;
+  font-display: swap;
+}
+:root {
+  --display: 'Anton', Impact, 'Arial Narrow', sans-serif;
+  --mono: 'Courier New', monospace;
+  --pixel: 'Cartridge', monospace;
+  --grit: url('/assets/print-grain.svg');
+  font-synthesis: style;
+}
+/* Original 32 × 40 frames stay on their integer pixel grid. */
+.fighter-pose {
+  display: block; width: 128px; height: 160px; flex: none;
+  background-image: var(--sheet); background-repeat: no-repeat;
+  background-size: calc(var(--frames, 14) * 128px) 160px;
+  background-position: calc(var(--pose, 0) * -128px) 0;
+  image-rendering: pixelated;
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+}

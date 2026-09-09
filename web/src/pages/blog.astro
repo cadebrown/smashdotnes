@@ -1,0 +1,12 @@
+---
+import SiteLayout from '../layouts/SiteLayout.astro';
+import { sectionEntries, formatDate } from '../data/sections';
+const entries = await sectionEntries('blog');
+---
+<SiteLayout title="Blog" description="Notes from making Smash.NES.">
+  <header class="page-intro"><h1>Blog</h1><p>Notes from making the game.</p></header>
+  <section class="article-list" aria-label="Blog posts">{entries.map(entry => <article>
+    {entry.data.date && <time datetime={entry.data.date.toISOString()}>{formatDate(entry.data.date)}</time>}
+    <h2><a href={`/${entry.id}/`}>{entry.data.title}</a></h2><p>{entry.data.description}</p>
+  </article>)}</section>
+</SiteLayout>

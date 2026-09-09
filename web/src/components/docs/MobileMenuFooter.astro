@@ -1,0 +1,5 @@
+---
+const section = Astro.url.pathname.startsWith('/book/') ? 'Book' : 'Docs';
+---
+<a class="section-home" href={`/${section.toLowerCase()}/`}>All {section === 'Book' ? 'chapters' : 'reference pages'} ↗</a>
+<style>.section-home{display:block;padding:1rem 0;border-top:1px solid var(--sl-color-gray-4);font:.8rem var(--mono);color:var(--sl-color-white)}</style>

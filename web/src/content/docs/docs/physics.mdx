@@ -1,0 +1,46 @@
+---
+title: Integer physics and recovery
+description: Movement, jump velocity, one-way landing, blast bounds, and knockback as the ROM applies them.
+sidebar:
+  label: Physics
+  order: 6
+---
+import TrajectoryLab from '../../../components/learning/TrajectoryLab.astro';
+import KnockbackLab from '../../../components/learning/KnockbackLab.astro';
+
+The fighter model uses signed integer positions and velocities. Horizontal movement is two pixels per update while a direction is held; an accepted jump assigns vertical velocity `-9`. Negative vertical velocity moves upward because screen Y grows downward.
+
+<TrajectoryLab />
+
+<aside class="book-exercise"><strong>Try it: count the arc.</strong><p>Reset with <code>vy = -9</code>, advance a few updates, then compare the every-other-frame gravity change with the trace.</p></aside>
+
+## Gravity is deliberately coarse
+
+[`apply_fighter_physics()`](https://github.com/cadebrown/smashdotnes/blob/main/src/main.c) adds one to vertical velocity on every other global frame, capped at `6`, then adds velocity to Y. That yields a deterministic arc without fixed-point math. The lab above traces the stated rule from the code, including its even-frame gravity condition; it does not read emulator memory or predict every practical jump, because `frame_counter` phase and platform contact matter.
+
+## The platform is a crossing test
+
+A fighter lands only when all of these are true: their 16-pixel body overlaps the platform horizontally, vertical velocity is non-negative, the prior Y is at or above ground Y, and the new Y has reached it. The runtime then fixes Y to `143`, clears vertical velocity, marks ground state, and replenishes jumps. Passing under the platform cannot trigger a landing because it fails the downward-crossing requirement.
+
+The system accepts two rising-edge Up presses before a landing. Holding Up cannot spend both: the input code compares current and previous controller bits. Hitstun prevents input processing, but physics still runs, so knockback and falling continue.
+
+## Knockback is damage-dependent, then decays
+
+Each successful hit adds damage with saturation at 255. Its initial horizontal magnitude is `4 + (damage >> 4)`, capped at 14, and then moves one unit toward zero every update. At 64 accumulated damage, the formula produces 8. Knockback also assigns a vertical velocity: `-5` for bullet/fireball hits, `-6` for a jab, and `-8` for axe or Tommy’s kick.
+
+This is a compact tuning curve, not a full fighting-game launch system. There is no directional influence, hitlag, wall collision, ledge grab, or upper blast zone in the current runtime.
+
+<KnockbackLab />
+
+<details>
+<summary>Why does 64 damage launch at 8?</summary>
+
+`4 + (64 >> 4)` is `4 + 4`. The resulting horizontal speed then decays by one each update.
+
+</details>
+
+## KO is a reset, not a stock transition
+
+Crossing left, right, or bottom bounds increments the other fighter’s KO counter, clears the fallen fighter’s damage and transient action state, then restores a fixed spawn. The HUD shows damage; it does not show the counters. The exact reset follows the source’s [`BLAST_*` checks](https://github.com/cadebrown/smashdotnes/blob/main/src/main.c).
+
+Read [combat implementation](/docs/contact/) for how contact enters this physics loop.

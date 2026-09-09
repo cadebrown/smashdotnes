@@ -26,7 +26,7 @@ export default defineConfig({
     screenshot: "only-on-failure"
   },
   webServer: {
-    command: `uv run python -m http.server ${port} --bind 127.0.0.1 --directory public`,
+    command: `uv run python -m http.server ${port} --bind 127.0.0.1 --directory dist`,
     url: `${baseURL}/`,
     reuseExistingServer: false,
     stdout: "pipe",

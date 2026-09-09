@@ -1,0 +1,24 @@
+---
+import ScreenEffectsToggle from '../themes/ScreenEffectsToggle.astro';
+import { roster } from '../../data/roster';
+import '../../styles/roster.css';
+import '../../styles/rental-roster.css';
+interface Props { cover?: boolean; }
+const { cover = false } = Astro.props;
+const Heading = cover ? 'h1' : 'h2';
+const poseStyle = (fighter: typeof roster[number]) => `--sheet:url('/assets/fighters/${fighter.id}.png');--pose:${fighter.pose};--frames:${fighter.frames};--crop-x:${fighter.x};--crop-y:${fighter.y};--crop-width:${fighter.width};--crop-height:${fighter.height};--large-scale:${fighter.scale};--small-scale:${fighter.smallScale};--fighter-ink:${fighter.ink}`;
+---
+<div class:list={['artboard', 'roster-board', { 'roster-cover': cover }]} data-rental-roster data-screen-fx="on">
+  <div class="rental-label rental-only" aria-hidden="true"><span class="rental-brand">SMASH<span>.NES</span></span><span class="rental-stamp">RENTAL<br/>CARTRIDGE</span><span class="rental-label-caption">FOUR FIGHTERS. ONE PLATFORM.</span></div>
+  <div class="roster-screen">
+    <header class="roster-screen-header"><div><p class="eyebrow">{cover ? 'NES platform fighter' : 'The four-fighter cartridge'}</p><Heading>{cover ? 'Four fighters. One platform.' : 'Pick your fight.'}</Heading></div>{!cover && <ScreenEffectsToggle class="screen-fx-toggle rental-only" />}</header>
+    <div class="fighter-grid">{roster.map(fighter=><a class={`roster-fighter ${fighter.id}`} style={poseStyle(fighter)} data-roster-fighter={fighter.id} href={`/book/#${fighter.anchor}`}><div class="sprite-stage"><span class="fighter-pose roster-pose" aria-hidden="true"></span></div><h3>{fighter.name}</h3><p>{fighter.move}</p>{!cover && <span class="fighter-cue rental-only" aria-hidden="true">MEET THE FIGHTER ↗</span>}</a>)}</div>
+    <footer><span>{cover ? 'BUILD DAMAGE. SEND THEM FLYING.' : <>FOUR FIGHTERS.<br class="rental-only"/> NO BACK ROW.</>}</span><a href="/play/" class="roster-play">PLAY SMASH.NES <span aria-hidden="true">→</span></a></footer>
+    <div class="screen-effects rental-only" aria-hidden="true"><i class="screen-scanlines"></i><i class="screen-grain"></i><i class="screen-roll"></i><i class="screen-glass"></i></div>
+  </div>
+  <div class="rental-shell-footer rental-only"><span>SMASH.NES / 8-BIT PLATFORM FIGHTER</span><span class="cartridge-contacts" aria-hidden="true"></span></div>
+</div>
+<script>
+  import { initRentalRoster } from '../../scripts/rental-roster';
+  document.querySelectorAll<HTMLElement>('[data-rental-roster]').forEach(initRentalRoster);
+</script>

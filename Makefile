@@ -2,7 +2,7 @@ ROOT := $(abspath .)
 CLI := cargo run --package nessy --
 EMULATOR ?= mame
 
-.PHONY: help doctor rebuild-fighters capture-kung-fu-reference rebuild-music check-music generate build inspect run capture capture-audio capture-theme title-iterations smoke tas test-emu test-fceux test-web test fmt web-sync web-dev ci-pages clean
+.PHONY: help doctor rebuild-fighters capture-kung-fu-reference rebuild-music check-music generate build inspect run capture capture-audio capture-theme title-iterations smoke tas test-emu test-fceux test-web test fmt web-sync web-dev ci-pages manual-refresh manual-review manual-accept manual-check clean
 
 help:
 	@echo "Targets:"
@@ -27,7 +27,11 @@ help:
 	@echo "  make test       # run rust tests + emulator suite + web suite"
 	@echo "  make fmt        # format rust sources"
 	@echo "  make web-sync   # copy ROM/docs/screens into web/public"
-	@echo "  make web-dev    # serve the synced static site on port 8080"
+	@echo "  make web-dev    # serve Astro/Starlight with live updates on port 8080"
+	@echo "  make manual-refresh # capture exact manual frames into a review candidate"
+	@echo "  make manual-review # regenerate the candidate review gallery"
+	@echo "  make manual-accept # promote the reviewed captures locally"
+	@echo "  make manual-check # verify approved manual capture freshness"
 	@echo "  make ci-pages   # mirror GitHub Pages build and stage ./site artifact"
 	@echo "  make clean      # remove generated outputs"
 
@@ -136,13 +140,29 @@ web-sync: build
 	$(CLI) web sync
 
 web-dev: web-sync
-	uv run python -m http.server 8080 --bind 127.0.0.1 --directory web/public
+	npm --prefix web ci --ignore-scripts --no-audit --no-fund
+	npm --prefix web run dev -- --port 8080
+
+manual-refresh:
+	node web/scripts/refresh-manual.mjs --refresh
+
+manual-review:
+	node web/scripts/refresh-manual.mjs --review
+
+manual-accept:
+	node web/scripts/refresh-manual.mjs --accept
+
+manual-check:
+	node web/scripts/refresh-manual.mjs --check
 
 ci-pages: web-sync
+	npm --prefix web ci --ignore-scripts --no-audit --no-fund
+	npm --prefix web run check
+	npm --prefix web run build
 	rm -rf $(ROOT)/site
 	mkdir -p $(ROOT)/site
-	cp -R $(ROOT)/web/public/. $(ROOT)/site/
-	diff -qr $(ROOT)/web/public $(ROOT)/site
+	cp -R $(ROOT)/web/dist/. $(ROOT)/site/
+	diff -qr $(ROOT)/web/dist $(ROOT)/site
 
 clean:
 	rm -rf out web/public/rom/smash.nes web/public/snaps web/public/docs web/public/info/build.json src/generated src/chars/*/generated cfg nvram

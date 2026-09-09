@@ -1,0 +1,79 @@
+---
+import { render } from 'astro:content';
+import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
+import { sectionEntries } from '../data/sections';
+import '../styles/book.css';
+const chapters = await Promise.all((await sectionEntries('book')).map(async entry => ({
+  entry, slug:entry.id.split('/')[1], ...await render(entry),
+})));
+const formerAnchors: Record<string,string> = {};
+for (const entry of await sectionEntries('docs')) {
+  const slug=entry.id.split('/')[1];
+  if(!['architecture','physics','contact','rendering','audio'].includes(slug))continue;
+  formerAnchors[slug]=`/docs/${slug}/`;
+  for(const heading of (await render(entry)).headings)formerAnchors[heading.slug]=`/docs/${slug}/#${heading.slug}`;
+}
+Object.assign(formerAnchors,{'trajectory-title':'/docs/physics/#trajectory-title','knockback-title':'/docs/physics/#knockback-title','animation-viewer-title':'/docs/rendering/#animation-viewer-title'});
+---
+<StarlightPage frontmatter={{title:'The Book',description:'Start a match. Learn the buttons. Pick a fighter. Land a hit.',tableOfContents:false}} hasSidebar={false}>
+  <script is:inline define:vars={{formerAnchors}}>
+    const openReference = () => {
+      let anchor;try{anchor=decodeURIComponent(location.hash.slice(1));}catch{return;}
+      const target=formerAnchors[anchor];
+      if(target){const destination=new URL(target,location.origin);destination.search=location.search;location.replace(destination);}
+    };
+    openReference();
+    window.addEventListener('hashchange',openReference);
+  </script>
+  <div class="book-reader not-content" data-book>
+    <div class="book-deck"><p>Four fighters. One platform. Get them off it.</p><a href="/play/">Play ↗</a></div>
+    <div class="book-layout">
+      <aside class="book-nav" data-pagefind-ignore>
+        <details open data-book-contents>
+          <summary>Contents <span aria-hidden="true">↕</span></summary>
+          <nav aria-label="Book contents">
+            <ol>{chapters.map(({entry,slug},index)=><li>
+              <a href={`#${slug}`} data-chapter-link={slug}><span aria-hidden="true">{String(index+1).padStart(2,'0')}</span>{entry.data.sidebar.label??entry.data.title}</a>
+            </li>)}</ol>
+            <a class="book-play" href="/docs/">Inside the cartridge ↗</a>
+          </nav>
+        </details>
+      </aside>
+      <article class="book-chapters" aria-label="Complete instruction book">
+        {chapters.map(({entry,slug,Content},index)=><section class="book-chapter" id={slug} data-book-chapter tabindex="-1" aria-labelledby={`${slug}-title`}>
+          <header class="book-chapter-heading"><span aria-hidden="true">{String(index+1).padStart(2,'0')}</span><h2 id={`${slug}-title`}>{entry.data.title}</h2></header>
+          <div class="book-prose"><Content /></div>
+          <a class="back-to-contents" href="#_top" data-pagefind-ignore>Back to contents ↑</a>
+        </section>)}
+        <div class="book-end"><p>You know the buttons. Go find the edge.</p><a href="/play/">Play a match ↗</a></div>
+      </article>
+    </div>
+  </div>
+</StarlightPage>
+<script>
+  const contents = document.querySelector<HTMLDetailsElement>('[data-book-contents]');
+  if (contents) {
+    const wide = matchMedia('(min-width: 1000px)');
+    const sync = () => {contents.open=wide.matches;};
+    sync(); wide.addEventListener('change',sync);
+    const links = [...contents.querySelectorAll<HTMLAnchorElement>('[data-chapter-link]')];
+    const chapters = [...document.querySelectorAll<HTMLElement>('[data-book-chapter]')];
+    links.forEach(link=>link.addEventListener('click',()=>{if(!wide.matches)contents.open=false;}));
+    let queued=false;
+    const update = () => {
+      queued=false;
+      const current=chapters.filter(chapter=>chapter.getBoundingClientRect().top<=220).at(-1)??chapters[0];
+      links.forEach(link=>{if(link.dataset.chapterLink===current.id)link.setAttribute('aria-current','location');else link.removeAttribute('aria-current');});
+    };
+    window.addEventListener('scroll',()=>{if(!queued){queued=true;requestAnimationFrame(update);}},{passive:true});
+    const reveal = () => {
+      let id;try{id=decodeURIComponent(location.hash.slice(1));}catch{return;}
+      const target=id && document.getElementById(id);
+      if(!target)return;
+      let parent=target.parentElement;
+      while(parent){if(parent instanceof HTMLDetailsElement)parent.open=true;parent=parent.parentElement;}
+    };
+    reveal(); update();
+    window.addEventListener('hashchange',reveal);
+  }
+</script>

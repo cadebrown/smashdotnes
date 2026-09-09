@@ -3,8 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#070808" />
-    <meta name="color-scheme" content="dark" />
+    <meta name="theme-color" content="#e6e7e2" />
+    <meta name="color-scheme" content="light" />
     <meta name="description" content="Build provenance and published artifacts for Smash.NES." />
     <title>Build — Smash.NES</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22><rect width=%2232%22 height=%2232%22 rx=%224%22 fill=%22%23070808%22/><path d=%22M7 9h18v4H11v3h12v4H11v3h14v4H7z%22 fill=%22%23e64b31%22/></svg>" />
@@ -15,36 +15,27 @@
     <main id="main" class="page-shell">
       <header class="topbar">
         <a class="brand" href="/" aria-label="Smash.NES home">
-          <span class="power-led" aria-hidden="true"></span>
           <span>SMASH.NES</span>
         </a>
         <nav class="topnav" aria-label="Primary navigation">
-          <a href="/play/">Play</a>
+          <a href="/">Play</a>
           <a href="/docs/">Manual</a>
           <a href="/info/" aria-current="page">Build</a>
         </nav>
       </header>
 
       <section class="panel page-copy">
-        <p class="eyebrow">Cartridge provenance</p>
-        <h1 class="page-title">Build</h1>
-        <p class="muted">Generated metadata for this exact published ROM and source revision.</p>
+        <h1 class="page-title">Build details</h1>
+        <p class="muted">Source revision and ROM for this version of the game.</p>
       </section>
 
       <section class="panel page-copy">
-        <h2>Build Snapshot</h2>
         <div class="kv" id="snapshot"></div>
       </section>
 
       <section class="panel page-copy">
-        <h2>Published Routes</h2>
-        <ul class="route-list" id="route-list"></ul>
-      </section>
-
-      <section class="panel page-copy">
-        <h2>Raw Metadata</h2>
         <details>
-          <summary class="muted">Show build.json</summary>
+          <summary class="muted">View raw build data</summary>
           <pre class="raw-json" id="raw-json">loading...</pre>
         </details>
       </section>
@@ -68,39 +59,13 @@
       function fillSnapshot(data) {
         const el = document.getElementById("snapshot");
         if (!el) return;
-        appendKV(el, "project", data.project);
-        appendKV(el, "generated_at_unix", data.generated_at_unix);
-        appendKV(el, "author", data.author);
-        appendKV(el, "rom_path", data.rom_path);
-        appendKV(el, "git.branch", data.git && data.git.branch);
-        appendKV(el, "git.commit", data.git && data.git.commit);
-        appendKV(el, "git.dirty", data.git && data.git.dirty);
-      }
-
-      function fillRoutes(links) {
-        const el = document.getElementById("route-list");
-        if (!el) return;
-        if (!Array.isArray(links) || links.length === 0) {
-          const li = document.createElement("li");
-          li.className = "route-row";
-          li.textContent = "No routes found.";
-          el.appendChild(li);
-          return;
-        }
-        for (const item of links) {
-          const li = document.createElement("li");
-          li.className = "route-row";
-          const label = document.createElement("span");
-          label.textContent = item.label || "route";
-          const path = document.createElement("span");
-          const link = document.createElement("a");
-          link.href = item.url;
-          link.textContent = item.url || "(missing)";
-          path.appendChild(link);
-          li.appendChild(label);
-          li.appendChild(path);
-          el.appendChild(li);
-        }
+        appendKV(el, "Project", data.project);
+        appendKV(el, "Built", data.generated_at_unix == null ? null : new Date(data.generated_at_unix * 1000).toLocaleString());
+        appendKV(el, "Author", data.author);
+        appendKV(el, "ROM", data.rom_path);
+        appendKV(el, "Branch", data.git && data.git.branch);
+        appendKV(el, "Commit", data.git && data.git.commit);
+        appendKV(el, "Uncommitted changes", data.git?.dirty == null ? null : data.git.dirty ? "Yes" : "None");
       }
 
       function setRawJson(data) {
@@ -116,7 +81,6 @@
         })
         .then((data) => {
           fillSnapshot(data);
-          fillRoutes(data.links);
           setRawJson(data);
         })
         .catch((err) => {

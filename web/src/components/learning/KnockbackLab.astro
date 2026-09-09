@@ -1,0 +1,113 @@
+<section class="knockback-lab not-content" data-knockback-lab aria-labelledby="knockback-title">
+  <header class="knockback-lab__header">
+    <p class="knockback-lab__kicker">Try it</p>
+    <h2 id="knockback-title">How far does a hit send you?</h2>
+    <p>Set the fighter’s <strong>total damage after the hit</strong>, then step through the push.</p>
+  </header>
+
+  <div class="knockback-lab__controls">
+    <label class="knockback-lab__damage" for="knockback-damage">Damage after hit <output data-damage-output for="knockback-damage">0%</output></label>
+    <input id="knockback-damage" data-damage type="range" min="0" max="255" value="0" aria-describedby="knockback-formula" />
+    <div class="knockback-lab__presets" aria-label="Damage presets">
+      <button type="button" data-preset="0">0%</button>
+      <button type="button" data-preset="64">64%</button>
+      <button type="button" data-preset="160">160% cap</button>
+    </div>
+  </div>
+
+  <div class="knockback-lab__readout" aria-live="polite" aria-atomic="true">
+    <span>INITIAL PUSH <strong data-push>4 px/update</strong></span>
+    <span>UPDATE <strong data-update>0</strong></span>
+    <span>TRAVELED <strong data-distance>0 px</strong></span>
+  </div>
+
+  <figure class="knockback-lab__screen" aria-labelledby="knockback-figure-caption">
+    <svg data-plot viewBox="0 0 640 230" role="img" aria-label="Mario hits Rizer, whose horizontal movement can be stepped forward across a pixel track">
+      <defs>
+        <pattern id="knockback-grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="currentColor" stroke-opacity=".12" /></pattern>
+        <clipPath id="knockback-mario-frame"><rect x="4" y="80" width="64" height="80" /></clipPath>
+        <clipPath id="knockback-rizer-frame"><rect width="64" height="80" /></clipPath>
+      </defs>
+      <rect class="knockback-lab__screen-bg" x="1" y="1" width="638" height="228" rx="2" />
+      <rect class="knockback-lab__grid" x="22" y="24" width="596" height="150" fill="url(#knockback-grid)" />
+      <text class="knockback-lab__svg-label" x="28" y="43">HORIZONTAL TRACE / PIXELS</text>
+      <line class="knockback-lab__track" x1="68" y1="160" x2="593" y2="160" />
+      <line class="knockback-lab__start-line" x1="68" y1="63" x2="68" y2="178" />
+      <image class="knockback-lab__sprite" href="/assets/fighters/mario.png" x="-508" y="80" width="896" height="80" clip-path="url(#knockback-mario-frame)" aria-hidden="true" />
+      <text class="knockback-lab__fighter-label" x="29" y="202">MARIO</text>
+      <g data-rizer transform="translate(68 80)" aria-hidden="true"><image class="knockback-lab__sprite" href="/assets/fighters/rizer.png" x="-832" y="0" width="960" height="80" clip-path="url(#knockback-rizer-frame)" /></g>
+      <text data-rizer-label class="knockback-lab__fighter-label" x="68" y="202">RIZER</text>
+      <g data-marks aria-hidden="true"></g>
+      <text data-velocity class="knockback-lab__velocity" x="82" y="83">vx +4</text>
+    </svg>
+    <figcaption id="knockback-figure-caption">Horizontal knockback only. Each step moves the fighter, then reduces the push. Gravity, controls, and KOs are left out.</figcaption>
+  </figure>
+
+  <div class="knockback-lab__actions">
+    <button type="button" data-step>Step one update</button>
+    <button type="button" data-reset>Reset trace</button>
+    <p id="knockback-formula">At every complete 16 damage, the starting push gains one pixel per update. The runtime caps it at 14.</p>
+  </div>
+</section>
+
+<script>
+  type Trace = { damage: number; push: number; velocity: number; update: number; distance: number; positions: number[] };
+  const root = document.querySelector<HTMLElement>('[data-knockback-lab]');
+  if (root) {
+    const damageInput = root.querySelector<HTMLInputElement>('[data-damage]');
+    const damageOutput = root.querySelector<HTMLOutputElement>('[data-damage-output]');
+    const pushOutput = root.querySelector<HTMLElement>('[data-push]');
+    const updateOutput = root.querySelector<HTMLElement>('[data-update]');
+    const distanceOutput = root.querySelector<HTMLElement>('[data-distance]');
+    const rizer = root.querySelector<SVGGElement>('[data-rizer]');
+    const rizerLabel = root.querySelector<SVGTextElement>('[data-rizer-label]');
+    const velocityLabel = root.querySelector<SVGTextElement>('[data-velocity]');
+    const marks = root.querySelector<SVGGElement>('[data-marks]');
+    const stepButton = root.querySelector<HTMLButtonElement>('[data-step]');
+    const resetButton = root.querySelector<HTMLButtonElement>('[data-reset]');
+    if (damageInput && damageOutput && pushOutput && updateOutput && distanceOutput && rizer && rizerLabel && velocityLabel && marks && stepButton && resetButton) {
+      let state: Trace;
+      const initialPush = (damage: number) => Math.min(14, 4 + (damage >> 4));
+      const reset = () => {
+        const damage = Number(damageInput.value);
+        const push = initialPush(damage);
+        state = { damage, push, velocity: push, update: 0, distance: 0, positions: [] };
+        draw();
+      };
+      const step = () => {
+        if (state.velocity <= 0) return;
+        state.distance += state.velocity;
+        state.positions.push(state.distance);
+        state.velocity -= 1;
+        state.update += 1;
+        draw();
+      };
+      const draw = () => {
+        const x = 68 + state.distance * 4.7;
+        damageOutput.value = `${state.damage}%`;
+        pushOutput.textContent = `${state.push} px/update`;
+        updateOutput.textContent = String(state.update);
+        distanceOutput.textContent = `${state.distance} px`;
+        rizer.setAttribute('transform', `translate(${x} 80)`);
+        rizerLabel.setAttribute('x', String(x));
+        velocityLabel.setAttribute('x', String(Math.min(548, x + 14)));
+        velocityLabel.textContent = state.velocity > 0 ? `vx +${state.velocity}` : 'vx 0 / stopped';
+        marks.innerHTML = state.positions.map((position, index) => `<rect class="knockback-lab__mark" x="${68 + position * 4.7 - 2}" y="154" width="4" height="12"><title>update ${index + 1}: ${position} pixels</title></rect>`).join('');
+        stepButton.disabled = state.velocity <= 0;
+        stepButton.textContent = state.velocity <= 0 ? 'Push spent' : 'Step one update';
+      };
+      damageInput.addEventListener('input', reset);
+      root.querySelectorAll<HTMLButtonElement>('[data-preset]').forEach((button) => button.addEventListener('click', () => { damageInput.value = button.dataset.preset ?? '0'; reset(); damageInput.focus(); }));
+      stepButton.addEventListener('click', step);
+      resetButton.addEventListener('click', reset);
+      reset();
+    }
+  }
+</script>
+
+<style>
+  .knockback-lab{--kb-gold:var(--gold,var(--sl-color-accent));--kb-ember:var(--ember,var(--sl-color-accent));background:var(--grit),color-mix(in srgb,var(--sl-color-bg) 94%,var(--kb-gold));border:2px solid var(--sl-color-gray-4);border-bottom:6px solid var(--kb-ember);box-sizing:border-box;color:var(--sl-color-white);font-family:Arial,Helvetica,sans-serif;margin:2rem 0;padding:clamp(1rem,3vw,1.5rem);overflow:hidden}.knockback-lab__header{max-width:66ch}.knockback-lab__header h2{font:400 clamp(16px,3vw,24px)/1.45 var(--pixel,'Cartridge',monospace);letter-spacing:.02em;margin:.15rem 0 .55rem}.knockback-lab__header p{margin:.35rem 0}.knockback-lab__kicker{color:var(--kb-gold);font:400 10px/1.5 var(--pixel,'Cartridge',monospace);letter-spacing:.1em;text-transform:uppercase}.knockback-lab__controls{border-block:1px solid var(--sl-color-gray-4);display:grid;gap:.6rem;margin-top:1rem;padding:1rem 0}.knockback-lab__damage{align-items:baseline;display:flex;flex-wrap:wrap;gap:.65rem;font-weight:700}.knockback-lab__damage output{color:var(--kb-gold);font:700 1rem/1 var(--mono,'Courier New',monospace)}.knockback-lab input{accent-color:var(--kb-ember);max-width:100%;width:min(100%,36rem)}.knockback-lab__presets{display:flex;flex-wrap:wrap;gap:.5rem}.knockback-lab button{appearance:none;background:var(--sl-color-bg);border:1px solid var(--sl-color-gray-3);border-radius:0;color:var(--sl-color-white);cursor:pointer;font:700 .75rem/1.2 var(--mono,'Courier New',monospace);padding:.55rem .7rem}.knockback-lab button:hover,.knockback-lab button:focus-visible{border-color:var(--kb-gold);outline:2px solid var(--kb-gold);outline-offset:2px}.knockback-lab button:disabled{color:var(--sl-color-gray-2);cursor:default;opacity:.72}.knockback-lab__readout{display:grid;gap:.5rem;grid-template-columns:repeat(3,minmax(0,1fr));margin:1rem 0}.knockback-lab__readout span{border-left:3px solid var(--kb-ember);color:var(--sl-color-gray-2);font:700 10px/1.4 var(--mono,'Courier New',monospace);padding-left:.55rem}.knockback-lab__readout strong{color:var(--sl-color-white);display:block;font-size:.95rem}.knockback-lab__screen{background:var(--diagram-bg,var(--sl-color-black));border:2px solid var(--sl-color-gray-4);margin:0;max-width:100%;padding:.35rem}.knockback-lab__screen svg{display:block;height:auto;max-width:100%;width:100%}.knockback-lab__sprite{image-rendering:pixelated}.knockback-lab__sprite image{image-rendering:pixelated}.knockback-lab__screen-bg{fill:var(--diagram-bg,var(--sl-color-black));stroke:var(--sl-color-gray-4)}.knockback-lab__grid{color:var(--sl-color-gray-3)}.knockback-lab__track{stroke:var(--kb-gold);stroke-width:4}.knockback-lab__start-line{stroke:var(--kb-ember);stroke-dasharray:4 4;stroke-width:2}.knockback-lab__svg-label,.knockback-lab__fighter-label,.knockback-lab__velocity{fill:var(--sl-color-gray-2);font:700 10px var(--mono,'Courier New',monospace);letter-spacing:.05em}.knockback-lab__fighter-label{fill:var(--sl-color-white)}.knockback-lab__velocity{fill:var(--kb-gold)}.knockback-lab :global(.knockback-lab__mark){fill:var(--kb-ember)}.knockback-lab figcaption{color:var(--sl-color-gray-2);font:400 .72rem/1.45 var(--mono,'Courier New',monospace);padding:.5rem .2rem .1rem}.knockback-lab__actions{align-items:center;display:flex;flex-wrap:wrap;gap:.65rem;margin-top:1rem}.knockback-lab__actions p{color:var(--sl-color-gray-2);font:.78rem/1.45 Arial,Helvetica,sans-serif;margin:0;max-width:45rem}@media (max-width:30rem){.knockback-lab{margin-inline:-.25rem;padding:1rem}.knockback-lab__readout{grid-template-columns:1fr}.knockback-lab__screen{margin-inline:-.15rem}.knockback-lab__fighter-label{font-size:9px}}
+  .knockback-lab__screen>svg{display:block;height:auto;max-width:100%;width:100%}
+  @media (prefers-reduced-motion:reduce){.knockback-lab *{scroll-behavior:auto!important;transition:none!important}}
+  @media(max-width:30rem){.knockback-lab__readout{grid-template-columns:1fr 1fr}.knockback-lab__readout span:first-child{grid-column:1/-1}}
+</style>
