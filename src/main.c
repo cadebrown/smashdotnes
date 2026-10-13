@@ -266,6 +266,8 @@ static u8 battle_hud_dirty[2];
 static u8 title_cursor_rendered;
 static u8 fighter_render_frame[2];
 static u8 active_projectile_count;
+/* Saturates so the title entrance cannot replay after frame_counter wraps. */
+static u8 title_presentation_timer;
 
 static void oam_put(s16 x, s16 y, u8 tile, u8 attr);
 static void draw_character_icon(u8 character, u8 frame, s16 x, s16 y, u8 facing_right);
@@ -627,7 +629,7 @@ static void draw_title_scene(void) {
         draw_tile(x, 25, (u8)((x & 1) ? TILE_PLATFORM_B : TILE_PLATFORM_A));
         draw_tile(x, 26, (u8)((x & 1) ? TILE_PLATFORM_A : TILE_PLATFORM_B));
     }
-    draw_text(10, 28, "NES ALL STARS");
+    draw_text(10, 28, "PRESS START");
 }
 #elif TITLE_VARIANT == TITLE_VARIANT_CHALLENGERS
 static void draw_title_scene(void) {
@@ -766,7 +768,7 @@ static void draw_lobby_layout(void) {
     u8 gx = LOBBY_GRID_X;
     u8 gy = LOBBY_GRID_Y;
 
-    draw_text(13, 2, "LOBBY");
+    draw_text_centered(0, 2, 32, "CHOOSE YOUR FIGHTER");
     draw_text(4, 4, "MODE:");
     draw_text(10, 4, mode_names[game_mode]);
 
@@ -1169,6 +1171,7 @@ static void enter_title(void) {
     ppu_off();
     clear_nametable(TILE_BLANK);
     mode_cursor = 0;
+    title_presentation_timer = 0;
     title_cursor_rendered = 0xFF;
     ppu_load_palette();
     draw_title_scene();
@@ -1721,13 +1724,60 @@ static void draw_title_challengers(void) {
 }
 #endif
 
+#if TITLE_VARIANT == TITLE_VARIANT_WORLD
+static void draw_title_world_entrance(void) {
+    u8 walk_phase = (u8)((title_presentation_timer >> 3) & 0x03);
+    u8 idle_phase = (u8)((frame_counter >> 5) & 0x03);
+    u8 mario_frame;
+    u8 rizer_frame;
+    s16 mario_x;
+    s16 rizer_x;
+
+    /*
+     * The silhouettes enter once from the edges, framing rather than covering
+     * the title/menu. Their tested maximum is six sprites on a scanline.
+     */
+    if (title_presentation_timer < 40) {
+        mario_x = (s16)(-16 + title_presentation_timer);
+        mario_frame = roster_frame_walk[CHAR_MARIO][walk_phase];
+    } else {
+        mario_x = 24;
+        mario_frame = idle_phase == 2
+            ? roster_frame_walk[CHAR_MARIO][1]
+            : roster_frame_idle_a[CHAR_MARIO];
+    }
+
+    if (title_presentation_timer < 16) {
+        rizer_x = 272;
+        rizer_frame = roster_frame_idle_a[CHAR_RIZER];
+    } else if (title_presentation_timer < 72) {
+        rizer_x = (s16)(288 - title_presentation_timer);
+        rizer_frame = roster_frame_walk[CHAR_RIZER][walk_phase];
+    } else {
+        rizer_x = 216;
+        rizer_frame = idle_phase == 2
+            ? roster_frame_walk[CHAR_RIZER][1]
+            : roster_frame_idle_a[CHAR_RIZER];
+    }
+
+    draw_character_icon(CHAR_MARIO, mario_frame, mario_x, 168, 1);
+    draw_character_icon(CHAR_RIZER, rizer_frame, rizer_x, 168, 0);
+}
+#endif
+
 static void draw_lobby_dynamic_sprites(void) {
+    static const u8 idle_cycle[4] = {0, 1, 0, 3};
     u8 i;
 
     for (i = 0; i < CHAR_COUNT; ++i) {
         u8 sx = (u8)(lobby_card_x[i] * 8 + ((LOBBY_CELL_W * 8 - FIGHTER_W) >> 1));
         u8 sy = (u8)(lobby_card_y[i] * 8 + ((LOBBY_CELL_H * 8 - FIGHTER_H) >> 1));
-        draw_character_icon(i, 0, sx, sy, 1);
+        u8 phase = (u8)(((frame_counter >> 5) + i) & 0x03);
+        u8 semantic_frame = idle_cycle[phase];
+        u8 frame = semantic_frame == 0
+            ? roster_frame_idle_a[i]
+            : roster_frame_walk[i][semantic_frame - 1];
+        draw_character_icon(i, frame, sx, sy, 1);
     }
 
     draw_lobby_selection_marker(p1_char, TITLE_PAL_1P, 0);
@@ -1739,6 +1789,10 @@ static void draw_lobby_dynamic_sprites(void) {
 }
 
 static void update_title(void) {
+    if (title_presentation_timer < 96) {
+        ++title_presentation_timer;
+    }
+
     if (rising_edge(pad1, pad1_prev, BTN_UP) && mode_cursor > 0) {
         --mode_cursor;
         music_sfx(MUSIC_SFX_MENU);
@@ -1850,6 +1904,9 @@ static void render_frame(void) {
     begin_oam();
 
     if (game_state == STATE_TITLE) {
+#if TITLE_VARIANT == TITLE_VARIANT_WORLD
+        draw_title_world_entrance();
+#endif
 #if TITLE_VARIANT == TITLE_VARIANT_CHALLENGERS
         draw_title_challengers();
 #endif

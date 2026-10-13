@@ -43,6 +43,12 @@ timeout_seconds = 75
 description = "Drives every fighter through every authored idle, walk, jump, jab, and special pose."
 
 [[case]]
+id = "menu_presentation"
+script = "menu_presentation.lua"
+timeout_seconds = 25
+description = "Checks title and lobby animation progression, their sprite budgets, and Start/Select scene timing."
+
+[[case]]
 id = "platform_landing"
 script = "platform_landing.lua"
 timeout_seconds = 40

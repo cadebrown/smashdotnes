@@ -11,6 +11,7 @@ SmashDotNES is a four-fighter platform brawler that runs as a real mapper-0 NES 
 - A source-speed four-voice NES port of Super Smash Bros. Melee's Menu 1 theme
 - Contact-only hit sparks and synchronized simulation/render action frames
 - Data-driven PNG/TOML fighter visuals and animation frame selection
+- Staggered title entrances and animated fighter-select portraits within NES sprite limits
 - Deterministic native captures, PCM inspection, combat probes, and long-run checks
 - Offline browser play with keyboard/touch controls and Playwright-driven screenshots
 

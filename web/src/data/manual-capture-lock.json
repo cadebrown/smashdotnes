@@ -1,18 +1,18 @@
 {
   "version": 1,
-  "romSha256": "daee33b394e3c52b4fd8fa66058a650b9497e459fb5a663714be2eb15e4d6625",
+  "romSha256": "ee5fad430c5b423017665d00cc51d7d3fa6b61fb4820524ca56340bef58310e3",
   "driverSha256": "18106b5cacadccf2449512e63bc9cdbe2036640dd71fbae43e3e56670c5562ea",
   "annotationSha256": "e805a294aaf7a5d76edd5131c8d3fe024c5f1dd33fb89d3148fc11e108abbebe",
   "images": [
     {
       "file": "01_title.png",
-      "sha256": "e1d8e7122dd09bc414388e00d844f2938069cdc299b2b5bb147c7b419161b29b",
+      "sha256": "a9b841999fe7600f0ea445f1d5430ae0cde6f5b4cf79ef130eaee19f3b665538",
       "width": 256,
       "height": 240
     },
     {
       "file": "02_lobby.png",
-      "sha256": "17c9443909b9b90e749d8fde381ff2e3de33d4d92979471f09210c93bbccab55",
+      "sha256": "41d1804fea0227819c22d3ee176ee7d1172f52d43d380bf3bb260dc726ccef84",
       "width": 256,
       "height": 240
     },
