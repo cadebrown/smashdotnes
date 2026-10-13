@@ -22,26 +22,20 @@ const scenes = [
   </figure>)}
 </div>
 <style>
-  .manual-examples{--xerox-black:#151714;--xerox-paper:#cdc19c;--xerox-yellow:#c6a947;--xerox-red:#c83e27;position:relative;display:grid;grid-template-columns:1fr 1fr;align-items:start;gap:clamp(14px,4cqi,32px);margin:15px 0 0;padding:42px clamp(14px,3cqi,24px) 28px;container-type:inline-size;isolation:isolate}
-  .manual-examples::before{content:'';position:absolute;z-index:-2;inset:14px 0 9px;background:linear-gradient(105deg,transparent 0 2%,#d4cdb512 2.5% 5%,transparent 5.4% 96%,#d4cdb518 96.4%),url('/assets/copier-distress.svg'),var(--xerox-black);clip-path:polygon(0 2%,7% 0,22% 3%,38% 0,59% 2%,73% 0,100% 4%,98% 36%,100% 62%,97% 100%,81% 98%,66% 100%,42% 97%,24% 100%,5% 97%,2% 70%)}
-  figure{position:relative;min-width:0;margin:0;padding:14px 8px 15px;background:transparent;box-shadow:3px 4px 0 #ebe0b9,7px 8px 0 var(--xerox-red),-3px -2px 0 #151714;transform:rotate(-6deg);isolation:isolate}
-  .paper-backing{position:absolute;z-index:-2;inset:-4px;display:block;background:var(--manual-paper) center/100% 100%,var(--xerox-paper);clip-path:polygon(0 4%,6% 0,14% 3%,23% 0,32% 5%,43% 1%,53% 4%,63% 0,72% 4%,82% 0,91% 3%,100% 1%,97% 13%,100% 24%,96% 35%,100% 47%,97% 59%,100% 70%,96% 81%,100% 96%,89% 100%,77% 96%,66% 100%,55% 95%,43% 100%,32% 96%,21% 100%,10% 95%,0 100%,3% 86%,0 75%,4% 64%,0 52%,3% 41%,0 29%,4% 17%)}
-  figure::before,figure::after{content:'';position:absolute;z-index:-1;opacity:.92}
-  figure::before{top:-10px;right:-9px;left:-9px;height:17px;background:url('/assets/manual-ink-wear.svg') center/cover,repeating-linear-gradient(166deg,#151714 0 7px,#362c1e 8px 10px,#151714 11px 18px);clip-path:polygon(0 28%,6% 0,14% 25%,23% 2%,32% 35%,42% 0,51% 28%,62% 3%,72% 34%,81% 0,90% 25%,100% 8%,96% 57%,100% 100%,87% 70%,75% 100%,63% 68%,50% 100%,38% 73%,26% 100%,14% 67%,0 100%,4% 64%)}
-  figure::after{width:62%;height:9px;right:-7px;bottom:-12px;background:url('/assets/manual-paper-grime.svg') center/cover,var(--manual-paper) center/100% 100%,#aa9036;transform:rotate(-9deg);clip-path:polygon(0 19%,7% 0,16% 28%,25% 4%,35% 33%,46% 0,55% 26%,67% 3%,76% 30%,87% 0,100% 16%,96% 70%,100% 100%,86% 78%,72% 100%,59% 73%,46% 100%,31% 77%,17% 100%,4% 76%)}
-  figure:nth-child(2){margin-top:clamp(30px,8cqi,72px);transform:rotate(6.5deg);box-shadow:-4px 5px 0 #ebe0b9,-9px 9px 0 var(--xerox-yellow),3px -2px 0 #151714}
-  .capture-frame{position:relative;width:100%;max-width:290px;margin:0 auto;border:3px solid var(--xerox-paper);background:#8db9ed;box-shadow:inset 0 0 0 2px var(--xerox-black),0 0 0 2px var(--xerox-red),2px 3px 0 #151714}
+  .manual-examples{--xerox-black:#171d35;--xerox-paper:#f2f4fa;--xerox-yellow:#9babff;--xerox-red:#ff654a;position:relative;display:grid;grid-template-columns:1fr 1fr;align-items:start;gap:clamp(14px,4cqi,32px);margin:15px 0 0;padding:20px;container-type:inline-size;border:1px solid #d3d8e5;background:#f2f4fa}
+  .manual-examples::before{display:none}
+  figure{position:relative;min-width:0;margin:0;padding:14px 8px 15px;background:#eef1f7;border:1px solid #d3d8e5;box-shadow:none;isolation:isolate}
+  .paper-backing,figure::before,figure::after{display:none}
+  figure:nth-child(2){margin-top:0;box-shadow:none}
+  .capture-frame{position:relative;width:100%;max-width:290px;margin:0 auto;border:5px solid var(--xerox-black);background:#8db9ed;box-shadow:0 0 0 2px var(--xerox-red)}
   /* The original capture and annotation share x=44..206, y=80..192. */
   .capture-window{position:relative;aspect-ratio:162/112;overflow:hidden}
   .capture-source{position:absolute;left:calc(-44 / 162 * 100%);top:calc(-80 / 112 * 100%);width:calc(256 / 162 * 100%)}
   img{display:block;width:100%;height:auto;image-rendering:pixelated}
   .ink-overlay{position:absolute;inset:0;width:100%;height:100%;fill:none;stroke:var(--xerox-red);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(.5px .5px 0 var(--xerox-paper))}
-  .tape{position:absolute;z-index:2;display:block;width:42%;height:19px;background:url('/assets/manual-paper-grime.svg') center/cover,var(--manual-paper) center/100% 250%,#b79b3b;background-blend-mode:normal,multiply,normal;opacity:.96;mix-blend-mode:normal;box-shadow:0 3px #151714,inset 0 1px #eadb9b88,inset 0 -3px #432e14cc;pointer-events:none;clip-path:polygon(0 14%,5% 0,13% 17%,20% 2%,27% 29%,35% 0,44% 20%,52% 4%,61% 27%,68% 0,76% 21%,84% 2%,92% 25%,100% 9%,96% 31%,100% 50%,94% 67%,100% 88%,96% 100%,87% 79%,78% 100%,69% 75%,60% 100%,50% 78%,40% 100%,31% 74%,21% 100%,11% 79%,0 94%,4% 73%,0 57%,5% 39%)}
-  .tape--left{top:-15px;left:-10%;transform:rotate(-17deg)}
-  .tape--right{width:37%;right:-8%;bottom:-15px;transform:rotate(13deg)}
-  .move-stamp{position:absolute;z-index:3;right:-2px;top:-28px;padding:3px 6px 1px;border:3px solid currentColor;color:var(--xerox-red);background:url('/assets/manual-paper-grime.svg') center/cover,var(--manual-paper) center/160% 300%,var(--xerox-paper);font:400 clamp(35px,9.2cqi,66px)/.8 var(--display);letter-spacing:-.04em;text-shadow:2px 2px 0 #15171477;box-shadow:2px 3px 0 #151714bb;clip-path:polygon(0 8%,8% 0,18% 6%,29% 0,44% 5%,57% 0,72% 6%,87% 0,100% 9%,96% 27%,100% 43%,96% 59%,100% 77%,94% 100%,80% 94%,65% 100%,49% 95%,34% 100%,18% 93%,0 100%,4% 80%,0 63%,4% 45%,0 26%);transform:rotate(15deg);pointer-events:none}
-  figure:nth-child(2) .move-stamp{right:auto;left:-3px;top:-31px;color:var(--xerox-red);transform:rotate(-17deg)}
-  figcaption{max-width:21ch;margin:13px auto 0;padding:6px 7px 5px;color:var(--xerox-black);background:url('/assets/manual-paper-grime.svg') center/cover,var(--manual-paper) center/160% 300%,var(--xerox-paper);box-shadow:inset 0 1px #e9dfbd77,inset 0 -3px #59482b77,2px 3px 0 #151714aa;font:600 clamp(18px,3.7cqi,27px)/1.05 var(--manual-hand);clip-path:polygon(0 8%,5% 0,15% 4%,26% 0,39% 5%,53% 0,67% 4%,81% 0,100% 7%,96% 31%,100% 53%,95% 72%,100% 100%,82% 95%,65% 100%,48% 94%,29% 100%,13% 94%,0 100%,4% 76%,0 57%,4% 36%);transform:rotate(-3deg)}
-  figure:nth-child(2) figcaption{transform:rotate(3deg)}
+  .tape{display:none}
+  .move-stamp{position:absolute;z-index:3;right:8px;top:8px;padding:3px 6px 1px;border:1px solid currentColor;color:var(--xerox-red);background:var(--xerox-paper);font:400 clamp(27px,7cqi,46px)/.8 var(--display);letter-spacing:-.04em;pointer-events:none}
+  figure:nth-child(2) .move-stamp{right:8px;left:auto;top:8px;color:var(--xerox-red)}
+  figcaption{max-width:21ch;margin:13px auto 0;padding:0;color:var(--xerox-black);background:transparent;box-shadow:none;font:600 clamp(18px,3.7cqi,27px)/1.05 var(--manual-hand)}
   @container(max-width:320px){.manual-examples{gap:11px;padding:36px 11px 23px}figure{padding:8px 3px 7px;box-shadow:2px 3px 0 var(--xerox-paper),4px 5px 0 var(--xerox-red)}.move-stamp{font-size:clamp(23px,10.5cqi,34px);top:-15px}figcaption{margin-top:8px;padding:3px;font-size:clamp(16px,6.8cqi,22px)}}
 </style>

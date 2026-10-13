@@ -1,55 +1,47 @@
-/* A flat reading surface inside the same worn cartridge shell. */
-:root[data-art-theme=b] {
-  --sl-font:Arial,Helvetica,sans-serif; --sl-font-mono:var(--mono);
-  --sl-nav-height:7rem; --sl-content-width:48rem; --sl-sidebar-width:16rem;
-  --sl-color-bg:#121914; --sl-color-bg-nav:#d9d0ae; --sl-color-bg-sidebar:#121914;
-  --sl-color-black:#0a120d; --sl-color-white:#e4ddbf;
-  --sl-color-gray-1:#d5d0b3; --sl-color-gray-2:#b3b79e; --sl-color-gray-3:#8c9880;
-  --sl-color-gray-4:#53624d; --sl-color-gray-5:#303b31; --sl-color-gray-6:#1b241c;
-  --sl-color-accent:#df7859; --sl-color-accent-high:#edcca1; --sl-color-accent-low:#4f281e;
-  --diagram-bg:#0a140d; --code-bg:#0a140d;
+/* Documentation is a field guide: calm pages around the game's precise artifacts. */
+:root[data-site-style=arcade][data-art-theme=b] {
+  --sl-font: Arial, Helvetica, sans-serif; --sl-font-mono: var(--mono, "Courier New", monospace);
+  --sl-nav-height: 7rem; --sl-content-width: 46rem; --sl-sidebar-width: 15rem;
+  --paper:#171d35; --ink:#f2f4fa; --muted:#b4bfd9; --line:#343e58; --accent:#9babff; --gold:#9babff; --diagram-bg:#202943; --code-bg:#202943;
+  --sl-color-bg:var(--paper); --sl-color-bg-nav:var(--paper); --sl-color-bg-sidebar:var(--paper); --sl-color-black:#0f1428; --sl-color-white:var(--ink);
+  --sl-color-gray-1:var(--ink); --sl-color-gray-2:var(--muted); --sl-color-gray-3:#7d89a8; --sl-color-gray-4:var(--line); --sl-color-gray-5:#252e49; --sl-color-gray-6:#1d2540;
+  --sl-color-accent:var(--accent); --sl-color-accent-high:#c7d0ff; --sl-color-accent-low:#283565;
 }
-:root[data-art-theme=b] body { background:var(--grit),var(--sl-color-bg); color:var(--sl-color-white); }
-:root[data-art-theme=b] header.header { background:url('/assets/rental-wear.svg') center/100% 100% no-repeat,var(--grit),#d9d0ae; border-bottom:6px solid #a94430; padding-block:12px; }
-:root[data-art-theme=b] .header-tools button[data-open-modal] { color:#33402e; background:#eae2c5; border:1px solid #8c9477; }
-:root[data-art-theme=b] .sidebar-pane { background:var(--grit),var(--sl-color-bg-sidebar); border-inline-end:1px solid var(--sl-color-gray-4); }
-:root[data-art-theme=b] .sidebar a { font-size:14px; line-height:1.5; }
-:root[data-art-theme=b] .sidebar a[aria-current=page] { background:#733b2b; color:#f5e9c8; border-inline-start:3px solid #de906c; }
-:root[data-art-theme=b] .content-panel { border:0; }
-:root[data-art-theme=b] .content-panel > .sl-container > h1 { margin:0; padding:24px; color:#202a1e; background:url('/assets/rental-wear.svg') center/100% 100% no-repeat,var(--grit),#d9d0ae; border-bottom:6px solid #a94430; font:400 24px/1.4 var(--pixel); overflow-wrap:anywhere; }
-:root[data-art-theme=b] .content-panel:has(> .sl-container > h1) { padding-bottom:0; }
-:root[data-art-theme=b] .sl-markdown-content { padding:24px; border:3px solid var(--sl-color-gray-4); border-radius:3px 3px 12px 12px; background:var(--grit),linear-gradient(135deg,#1c2d21,#101b13); box-shadow:inset 0 0 26px #0004; }
-:root[data-art-theme=b] .sl-markdown-content :is(p,li,dd):not(:where(.not-content *)) { color:var(--sl-color-white); line-height:1.75; }
-:root[data-art-theme=b] .sl-markdown-content :is(h2,h3,h4):not(:where(.not-content *)) { color:var(--sl-color-white); font:400 16px/1.6 var(--pixel); }
-:root[data-art-theme=b] .sl-markdown-content .sl-heading-wrapper { margin-top:2.25rem; }
-:root[data-art-theme=b] .sl-markdown-content .sl-heading-wrapper > :is(h2,h3,h4) { margin:0; }
-:root[data-art-theme=b] .sl-markdown-content .level-h2 { border-top:1px solid var(--sl-color-gray-4); padding-top:1rem; }
-:root[data-art-theme=b] .sl-markdown-content a:not(:where(.not-content *)) { color:var(--gold); text-underline-offset:3px; }
-:root[data-art-theme=b] .sl-markdown-content code { color:var(--gold); background:var(--code-bg); border-radius:0; }
-:root[data-art-theme=b] .sl-markdown-content :is(pre,blockquote,table,details) { border-radius:0; border-color:var(--sl-color-gray-4); }
-:root[data-art-theme=b] .sl-markdown-content pre { border-inline-start:3px solid var(--accent); }
-:root[data-art-theme=b] .sl-markdown-content th { font:700 12px/1.5 var(--mono); }
-:root[data-art-theme=b] .sl-markdown-content :is(th,td) { border-color:var(--sl-color-gray-4); }
-:root[data-art-theme=b] .sl-markdown-content img { image-rendering:pixelated; }
-:root[data-art-theme=b] .right-sidebar { border:0; }
-:root[data-art-theme=b] .right-sidebar a { font-size:12px; }
-:root[data-art-theme=b] .pagination-links a { border:1px solid var(--sl-color-gray-4); border-radius:0; box-shadow:none; }
-:root[data-art-theme=b] :focus-visible { outline:2px solid var(--gold); outline-offset:3px; }
-:root[data-art-theme=b] ::selection { background:var(--accent); color:var(--on-emphasis); }
-:root[data-art-theme=b][data-screen-fx=off] .sl-markdown-content { background-image:none; box-shadow:none; }
-:root[data-art-theme=b][data-theme=light] {
-  --sl-color-bg:#e2d8bb; --sl-color-bg-sidebar:#e2d8bb; --sl-color-black:#f4eacd;
-  --sl-color-white:#253024; --sl-color-gray-1:#33402f; --sl-color-gray-2:#535e49;
-  --sl-color-gray-3:#67715c; --sl-color-gray-4:#999a80; --sl-color-gray-5:#bfc0a3; --sl-color-gray-6:#d2c9ad;
-  --diagram-bg:#efe4c4; --code-bg:#eee1bf;
+:root[data-site-style=arcade][data-art-theme=b][data-theme=light] {
+  --paper:#eef1f7; --ink:#171d35; --muted:#596178; --line:#d3d8e5; --accent:#3448e5; --gold:#3448e5; --diagram-bg:#e3e7f1; --code-bg:#e3e7f1;
+  --sl-color-bg:var(--paper); --sl-color-bg-nav:var(--paper); --sl-color-bg-sidebar:var(--paper); --sl-color-black:#f8f9fc; --sl-color-white:var(--ink);
+  --sl-color-gray-1:var(--ink); --sl-color-gray-2:var(--muted); --sl-color-gray-3:#707990; --sl-color-gray-4:var(--line); --sl-color-gray-5:#e0e5ef; --sl-color-gray-6:#e8ebf3;
+  --sl-color-accent:var(--accent); --sl-color-accent-high:#2338c9; --sl-color-accent-low:#dce1ff;
 }
-:root[data-art-theme=b][data-theme=light] .sl-markdown-content { background:var(--grit),#f6edd3; box-shadow:none; }
-@media(max-width:50rem) {
-  :root[data-art-theme=b] .content-panel > .sl-container > h1 { font-size:24px; padding:20px 16px; }
-  :root[data-art-theme=b] .sl-markdown-content { padding:18px 14px; }
-  :root[data-art-theme=b] .header-tools { flex:0 1 auto; }
+:root[data-site-style=arcade][data-art-theme=b] :is(body,.main-pane,.sidebar-pane) { background:var(--paper); color:var(--ink); }
+:root[data-site-style=arcade][data-art-theme=b] .sidebar-pane { border-inline-end:1px solid var(--line); }
+:root[data-site-style=arcade][data-art-theme=b] .sidebar a { font-size:.9rem; line-height:1.45; }
+:root[data-site-style=arcade][data-art-theme=b] .sidebar a[aria-current=page] { background:color-mix(in srgb,var(--accent) 12%,transparent); border-inline-start:2px solid var(--accent); color:var(--ink); }
+:root[data-site-style=arcade][data-art-theme=b] .content-panel { border:0; }
+:root[data-site-style=arcade][data-art-theme=b] .content-panel > .sl-container > h1 { margin:0; padding:2.25rem 0 1.25rem; border-bottom:1px solid var(--line); background:transparent; color:var(--ink); font:400 clamp(2.25rem,5vw,4.25rem)/.94 var(--display,Impact,sans-serif); letter-spacing:-.025em; text-transform:uppercase; text-wrap:balance; }
+:root[data-site-style=arcade][data-art-theme=b] .content-panel:has(> .sl-container > h1) { padding-bottom:0; }
+:root[data-site-style=arcade][data-art-theme=b] .sl-markdown-content { padding:2rem 0 4rem; border:0; border-radius:0; background:transparent; box-shadow:none; }
+:root[data-site-style=arcade][data-art-theme=b] .sl-markdown-content :is(p,li,dd):not(:where(.not-content *)) { color:var(--ink); line-height:1.72; }
+:root[data-site-style=arcade][data-art-theme=b] .sl-markdown-content :is(h2,h3,h4):not(:where(.not-content *)) { color:var(--ink); font-family:var(--display,Impact,sans-serif); font-weight:400; letter-spacing:-.01em; text-transform:uppercase; }
+:root[data-site-style=arcade][data-art-theme=b] .sl-markdown-content .sl-heading-wrapper { margin-top:3rem; }
+:root[data-site-style=arcade][data-art-theme=b] .sl-markdown-content .level-h2 { border-top:1px solid var(--line); padding-top:1.25rem; }
+:root[data-site-style=arcade][data-art-theme=b] .sl-markdown-content a:not(:where(.not-content *)) { color:var(--accent); text-decoration-thickness:1px; text-underline-offset:.2em; }
+:root[data-site-style=arcade][data-art-theme=b] .sl-markdown-content code { border-radius:2px; color:var(--ink); background:var(--code-bg); }
+:root[data-site-style=arcade][data-art-theme=b] .sl-markdown-content :is(pre,blockquote,table,details) { border-color:var(--line); border-radius:0; }
+:root[data-site-style=arcade][data-art-theme=b] .sl-markdown-content pre { border-inline-start:2px solid var(--accent); }
+:root[data-site-style=arcade][data-art-theme=b] .sl-markdown-content :is(th,td) { border-color:var(--line); }
+:root[data-site-style=arcade][data-art-theme=b] .right-sidebar { border:0; }
+:root[data-site-style=arcade][data-art-theme=b] .pagination-links a { border:1px solid var(--line); border-radius:0; box-shadow:none; }
+:root[data-site-style=arcade][data-art-theme=b] :focus-visible { outline:2px solid var(--accent); outline-offset:3px; }
+:root[data-site-style=arcade][data-art-theme=b] ::selection { background:var(--accent); color:var(--paper); }
+/* The Starlight header has one line when its controls fit and reserves enough
+   vertical space for its compact two-line form before that breakpoint. */
+:root[data-site-style=arcade][data-art-theme=b] header.header { min-height:7rem; }
+@media(min-width:72rem) {
+  :root[data-site-style=arcade][data-art-theme=b] { --sl-nav-height:5rem; }
+  :root[data-site-style=arcade][data-art-theme=b] header.header { min-height:5rem; }
+  :root[data-site-style=arcade][data-art-theme=b] header.header .site-header-content { display:flex; align-items:center; gap:1rem; }
+  :root[data-site-style=arcade][data-art-theme=b] header.header .header-row { flex:1; min-width:0; }
+  :root[data-site-style=arcade][data-art-theme=b] header.header .primary-nav { margin-top:0; }
 }
-@media(max-width:30rem) {
-  :root[data-art-theme=b] .content-panel > .sl-container > h1 { font-size:16px; line-height:1.6; }
-  :root[data-art-theme=b] .site-footer nav { gap:12px; font-size:10px; }
-}
+@media(max-width:50rem) { :root[data-site-style=arcade][data-art-theme=b] .content-panel > .sl-container > h1 { padding:1.5rem 0 1rem; } :root[data-site-style=arcade][data-art-theme=b] .sl-markdown-content { padding:1.5rem 0 3rem; } }

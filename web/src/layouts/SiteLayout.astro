@@ -7,11 +7,11 @@ interface Props { title: string; description?: string; wide?: boolean; }
 const { title, description = 'Four fighters. One platform. A real NES platform fighter.', wide = false } = Astro.props;
 ---
 <!doctype html>
-<html lang="en" data-art-theme="b">
+<html lang="en" data-art-theme="b" data-site-style={Astro.url.pathname === '/design/' ? undefined : 'arcade'}>
   <head>
     <meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
     <meta name="description" content={description}/><meta name="theme-color" content="#121914"/>
-    <title>{title} · Smash.NES</title><link rel="icon" href="/assets/favicon.svg"/>
+    <title>{title === 'Smash.NES' ? title : `${title} · Smash.NES`}</title><link rel="icon" href="/assets/favicon.svg"/>
     <link rel="preload" href="/assets/fonts/cartridge.woff2" as="font" type="font/woff2" crossorigin/>
     <ArtThemeProvider />
   </head>

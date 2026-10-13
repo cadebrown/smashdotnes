@@ -1,0 +1,24 @@
+---
+import { roster } from '../data/roster';
+import '../styles/home-arena.css';
+const poseStyle = (fighter: typeof roster[number], index: number) => `--sheet:url('/assets/fighters/${fighter.id}.png');--pose:${fighter.pose};--frames:${fighter.frames};--crop-x:${fighter.x};--crop-y:${fighter.y};--crop-width:${fighter.width};--crop-height:${fighter.height};--large-scale:${fighter.scale};--small-scale:${fighter.smallScale};--order:${index}`;
+---
+<section class="home-arena" data-home-arena aria-label="Smash.NES">
+  <div class="arena-intro">
+    <h1><span>Small cart.</span><span>Big fight<span class="hero-period">.</span></span></h1>
+    <div class="arena-invitation">
+      <p>Four fighters.<br/>One small platform.<br/>A full-size grudge.</p>
+      <a class="play-button" href="/play/">Play Smash.NES <span aria-hidden="true">↗</span></a>
+      <span class="play-note">In your browser. On a real NES.</span>
+    </div>
+  </div>
+  <div class="arena-lineup" aria-label="Meet the fighters">
+    {roster.map((fighter, index) => <a class={`arena-fighter ${fighter.id}`} data-roster-fighter={fighter.id} style={poseStyle(fighter, index)} href={`/book/#${fighter.anchor}`}>
+      <div class="arena-motion" aria-hidden="true"><i></i><i></i><i></i></div>
+      <div class="sprite-stage"><span class="fighter-pose roster-pose" aria-hidden="true"></span></div>
+      <div class="arena-fighter-label"><h2>{fighter.name}</h2><span aria-hidden="true">↗</span></div>
+      <p>{fighter.move}</p>
+    </a>)}
+  </div>
+  <div class="arena-caption"><span>Four fighters. One platform.</span><span>1–2 players <i aria-hidden="true">/</i> Keyboard + gamepad</span></div>
+</section>

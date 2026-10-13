@@ -10,6 +10,7 @@ import '../../styles/rental-site.css';
     const themeFromLocation = () => validTheme(new URLSearchParams(window.location.search).get('theme'));
     const storedTheme = () => { try { return validTheme(localStorage.getItem(storageKey)); } catch { return null; } };
     const isWorkshop = window.location.pathname === '/design/';
+    if (!isWorkshop) document.documentElement.dataset.siteStyle = 'arcade';
     const selectedTheme = () => isWorkshop ? themeFromLocation() || storedTheme() || 'b' : 'b';
     try { document.documentElement.dataset.screenFx = localStorage.getItem('smash-screen-fx') === 'off' ? 'off' : 'on'; } catch { document.documentElement.dataset.screenFx = 'on'; }
     const updateBrowserColor = () => {

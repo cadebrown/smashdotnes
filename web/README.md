@@ -38,7 +38,7 @@ sheets. It clears its generated output so removed assets cannot linger.
 
 ## Routes
 
-The home page is the fighter cover; it does not load the emulator. The four main
+The home page is an arcade poster with an immediate Play link and the four original fighters; it does not load the emulator. The four main
 navigation links open `/play/`, `/book/`, `/docs/`, and `/blog/`. The player lives
 on `/play/`. `/book/` renders four short, illustrated chapters in one document: first match,
 controls, fighters, and combat. Architecture, physics, contact, rendering, and
@@ -69,17 +69,14 @@ arrows point at measured photo coordinates; keyboard overlays and callout keys
 respond to mouse, touch, and local keyboard focus. `controller-controls.ts` owns
 the mappings. `ControlMovePreview.astro` keeps two annotated native captures
 visible together: recovery and a missed jab. No stepping or practice counter is
-required to read the controls. The Play link is always available. The fight-zine header crops Mario and Rizer from the
+required to read the controls. The Play link is always available. The controller header crops Mario and Rizer from the
 original roster sheets; key presses briefly ring the matching controller button
 unless reduced motion is requested.
 
-The controls chapter uses a torn red masthead, a battered controller sheet, and
-no right-hand contents rail. `src/assets/manual/battered-paper.png` supplies
-generated material texture; Astro builds an optimized WebP. Its provenance is
-documented alongside the source. `manual-ink-wear.svg`, `manual-paper-grime.svg`,
-and `manual-type-wear.svg` add editable, static wear. Stamps, tape, and clippings
-sample the same material at different scales. Keyboard labels and native
-screenshots stay clear. No animated noise or full-page filter is used.
+The controls chapter uses a flat masthead and a clear controller diagram, with
+handwritten teaching annotations and no right-hand contents rail. Keyboard
+labels and native screenshots stay clear. No animated noise or full-page filter
+is used. Historical material assets remain available for the design workshop.
 Desktop uses a spread; narrow screens put the diagrams in reading order. Astro
 builds local 640px and 1280px WebP variants. The original photograph, public-domain
 provenance, and checksum live in `src/assets/controllers/`. Native button activation,
@@ -119,15 +116,30 @@ Use `make manual-refresh`, inspect `out/reports/manual-refresh/index.html`, then
 [refresh recipe](../docs/manual-refresh.md) explains the input-only drive,
 editable coordinates, review artifacts, and what to regenerate after UI changes.
 
-## Retro presentation
+## Arcade presentation
 
-`src/styles/retro.css` shares the display, bitmap, utility, and print-grain assets
+`/styles/` compares three additional homepage directions: Hardware, Midnight,
+and World. Links use `?style=hardware`, `?style=midnight`, or `?style=world`;
+the tabs also support arrow keys, Home, and End. Each preview links into the
+current game and guides. The motion toggle persists independently of Screen FX
+in `smash-style-motion`, and all three respect reduced-motion preferences.
+The alternatives live in `src/components/styles/`; choosing a preview does not
+change the shared site presentation.
+
+`src/styles/retro.css` shares the display, bitmap, and utility fonts
 between the playable site and Starlight. Anton is bundled locally under its OFL
 license. The small `Cartridge` web font is generated from the actual 8×8 glyphs in
 `src/chr.s`; regenerate it from the repo root with
 `uv run web/scripts/build-cartridge-font.py`. The generator checks pixel geometry,
 metrics, and the WOFF2 container. The checked-in font keeps normal npm builds
 independent of Python. Fighter art uses the original sheets at integer scales.
+
+The main site pairs ink blue and cobalt with coral and pale blue fighter lanes.
+Anton carries the display headings; Arial keeps prose and controls readable.
+`HomeArena.astro` and `home-arena.css` own the original sprites, short staggered
+entrance, and interaction speed lines. The source art stays at integer scales.
+Motion is finite, respects reduced motion, and responds to Screen FX. The player
+uses a flat frame sized to the desktop viewport; the emulator pixels stay clear.
 
 The manual defaults dark and preserves explicit light or system-theme choices.
 The art board contains a fight poster, fighter roster, and instruction booklet;
@@ -145,14 +157,14 @@ those studies do not alter the current ROM's stages or gameplay.
 Direct links use `?theme=a`, `?theme=b`, `?theme=c`, or `?theme=d`. A valid URL
 choice takes precedence in the design workshop and persists in `smash-art-theme`
 local storage. Without a query, the workshop uses the saved choice, defaulting to
-B. The main website uses the chosen Rental Cartridge presentation throughout:
-player, book, reference, blog, build information, and 404. A–D
-remain available in the workshop. Changing studies preserves the current URL's
+B. The main website uses the arcade presentation throughout:
+player, book, reference, blog, build information, and 404. A–D remain separate
+studies in the workshop. Changing studies preserves the current URL's
 other parameters and fragment. Manual light/dark preferences remain independent.
 
-`rental-site.css` owns the shared plastic shell and worn labels; `rental-docs.css`
-adapts the reading panels to Starlight, including its light paper mode. The home
-page includes the full centered fighter roster. The shared footer contains source,
+`rental-site.css` owns the shared site shell and `data-site-style="arcade"` tokens;
+`rental-docs.css` adapts the reading panels to Starlight, including light mode. The
+home page includes the full centered fighter roster. The shared footer contains source,
 ROM, build information, and Screen FX controls. Reading pages also expose their
 light/dark preference there. The workshop roster has its own synchronized FX
 control. `scripts/screen-effects.ts` persists `smash-screen-fx`; toggling effects

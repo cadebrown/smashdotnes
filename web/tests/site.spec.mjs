@@ -32,7 +32,7 @@ test.beforeAll(async () => {
   await mkdir(screenshotDir, { recursive: true });
 });
 
-test("home is the cartridge cover, lists the roster, and sends Play to the live player", async ({ page }) => {
+test("home introduces the fighters and sends Play to the live player", async ({ page }) => {
   const observed = observePage(page);
   const response = await page.goto("/");
   expect(response?.ok()).toBe(true);
@@ -42,14 +42,18 @@ test("home is the cartridge cover, lists the roster, and sends Play to the live 
   await expect.poll(() => page.evaluate(() => {
     return !window.EJS_emulator && ![...document.scripts].some(script => /emulatorjs|emulator\.min/i.test(script.src));
   })).toBe(true);
-  const roster = page.locator("[data-rental-roster]");
+  const roster = page.locator("[data-home-arena]");
   await expect(roster.locator("[data-roster-fighter]")).toHaveCount(4);
+  await roster.evaluate(async element => {
+    await Promise.all(element.getAnimations({ subtree: true }).map(animation => animation.finished));
+  });
   await page.screenshot({ path: path.join(screenshotDir, "home-desktop.png") });
 
   for (const width of [320, 390, 901, 1280, 1440]) {
     await page.setViewportSize({ width, height: 900 });
     expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth),
       `page overflow at ${width}px`).toBeLessThanOrEqual(1);
+    await expect(page.getByRole("link", { name: "Play Smash.NES", exact: true })).toBeInViewport();
   }
   await page.setViewportSize({ width: 390, height: 844 });
   await page.screenshot({ path: path.join(screenshotDir, "home-mobile.png") });

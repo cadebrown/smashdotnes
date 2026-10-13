@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 const screens = fileURLToPath(new URL('../../out/reports/web/screens/', import.meta.url));
 
 for (const [scope, route] of [['workshop','/design/?theme=b&study=fighters'], ['home','/']]) {
-test(`${scope} rental roster balances actual sprite pixels and preserves controllable screen effects`, async ({ page }) => {
+test(`${scope} roster balances actual sprite pixels and preserves controllable motion`, async ({ page }) => {
   const prefix = scope === 'home' ? 'home-' : '';
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
@@ -14,7 +14,10 @@ test(`${scope} rental roster balances actual sprite pixels and preserves control
   await page.goto(route);
   if(scope==='workshop') await expect(page.getByRole('tab', { name:'Fighter roster' })).toHaveAttribute('aria-selected', 'true');
   else await expect(page.locator('#game')).toHaveCount(0);
-  const board = page.locator('[data-rental-roster]');
+  const board = page.locator(scope === 'home' ? '[data-home-arena]' : '[data-rental-roster]');
+  if (scope === 'home') await board.evaluate(async element => {
+    await Promise.all(element.getAnimations({subtree:true}).map(animation => animation.finished));
+  });
   const measurements = [];
   for (const width of [1440, 900, 600, 390, 320]) {
     await page.setViewportSize({ width, height:1000 });
@@ -56,20 +59,33 @@ test(`${scope} rental roster balances actual sprite pixels and preserves control
   const toggle=(scope==='home' ? page.locator('[data-site-footer]') : board).getByRole('button',{name:'Screen effects'});
   await toggle.click();
   await expect(toggle).toHaveAttribute('aria-pressed','false');
-  await expect(board.locator('.screen-effects')).toBeHidden();
+  if (scope === 'workshop') await expect(board.locator('.screen-effects')).toBeHidden();
+  else {
+    await expect(board.locator('.arena-motion').first()).toBeHidden();
+    expect(await board.locator('.roster-pose').first().evaluate(el => getComputedStyle(el).animationName)).toBe('none');
+  }
   await page.reload();
   await expect(toggle).toHaveAttribute('aria-pressed','false');
   if(scope==='workshop') await expect(page.getByRole('tab',{name:'Fighter roster'})).toHaveAttribute('aria-selected','true');
   await toggle.press('Space');
   await expect(toggle).toHaveAttribute('aria-pressed','true');
-  const screen=board.locator('.roster-screen');
-  await screen.hover({position:{x:60,y:160}});
-  await expect.poll(()=>screen.evaluate(el=>el.style.getPropertyValue('--light-x'))).not.toBe('');
-  await page.emulateMedia({reducedMotion:'reduce'});
-  await expect.poll(()=>board.locator('.screen-grain').evaluate(el=>getComputedStyle(el).animationName)).toBe('none');
-  await expect(board.locator('.screen-roll')).toBeHidden();
-  await screen.hover({position:{x:200,y:160}});
-  expect(await screen.evaluate(el=>el.style.getPropertyValue('--light-x'))).toBe('');
+  if (scope === 'workshop') {
+    const screen=board.locator('.roster-screen');
+    await screen.hover({position:{x:60,y:160}});
+    await expect.poll(()=>screen.evaluate(el=>el.style.getPropertyValue('--light-x'))).not.toBe('');
+    await page.emulateMedia({reducedMotion:'reduce'});
+    await expect.poll(()=>board.locator('.screen-grain').evaluate(el=>getComputedStyle(el).animationName)).toBe('none');
+    await expect(board.locator('.screen-roll')).toBeHidden();
+    await screen.hover({position:{x:200,y:160}});
+    expect(await screen.evaluate(el=>el.style.getPropertyValue('--light-x'))).toBe('');
+  } else {
+    await board.locator('[data-roster-fighter=mario]').focus();
+    await expect.poll(() => board.locator('.arena-motion i').first().evaluate(el => getComputedStyle(el).animationName)).toBe('speed-line');
+    await page.emulateMedia({reducedMotion:'reduce'});
+    const animations = await board.evaluate(element => element.getAnimations({subtree:true}).filter(animation => animation.playState === 'running').length);
+    expect(animations).toBe(0);
+    expect(await board.locator('.roster-pose').first().evaluate(el => getComputedStyle(el).animationName)).toBe('none');
+  }
   await page.screenshot({path:path.join(screens,`${prefix}rental-reduced-motion.png`)});
   await board.getByRole('link',{name:/Mario Fireball/i}).click();
   await expect(page).toHaveURL(/\/book\/#mario--close-then-cover-the-approach/);

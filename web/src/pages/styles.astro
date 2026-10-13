@@ -1,0 +1,119 @@
+---
+import '../styles/retro.css';
+import HardwareStyle from '../components/styles/HardwareStyle.astro';
+import MidnightStyle from '../components/styles/MidnightStyle.astro';
+import WorldStyle from '../components/styles/WorldStyle.astro';
+const directions = [
+  {id:'hardware',name:'Hardware',description:'Burgundy, warm plastic, physical controls. A home for a real cartridge.'},
+  {id:'midnight',name:'Midnight',description:'An electric arena. Sharp type, wireframe rings, and a fighter in the spotlight.'},
+  {id:'world',name:'World',description:'The game spills onto the page. Open sky, pixel platforms, and a playful start screen.'},
+];
+---
+<!doctype html>
+<html lang="en" data-style-direction="hardware" data-style-motion="on">
+  <head>
+    <meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>Three styles · Smash.NES</title>
+    <meta name="description" content="Three different visual directions for Smash.NES: Hardware, Midnight, and World."/>
+    <meta name="theme-color" content="#16171c"/>
+    <link rel="icon" href="/assets/favicon.svg"/>
+    <script is:inline>
+      try { document.documentElement.dataset.styleMotion = localStorage.getItem('smash-style-motion') === 'off' ? 'off' : 'on'; } catch {}
+    </script>
+  </head>
+  <body>
+    <a class="style-skip" href="#style-preview">Skip to preview</a>
+    <header class="style-toolbar">
+      <h1>Pick a style.</h1>
+      <div class="style-tabs" role="tablist" aria-label="Visual direction">{directions.map((direction,index) => <button id={`tab-${direction.id}`} type="button" role="tab" aria-selected={index===0} aria-controls={`panel-${direction.id}`} tabindex={index===0?0:-1} data-style-tab={direction.id}>{direction.name}</button>)}</div>
+      <button class="motion-toggle" type="button" aria-pressed="true" data-style-motion-toggle><i aria-hidden="true"></i>Motion <span data-motion-label>on</span></button>
+    </header>
+    <main id="style-preview">
+      <div class="style-caption" aria-live="polite">{directions.map((direction,index)=><p data-style-caption={direction.id} hidden={index!==0}>{direction.description}</p>)}<a href="/">Previous direction ↗</a></div>
+      <section class="style-panel" id="panel-hardware" role="tabpanel" aria-labelledby="tab-hardware" data-style-panel="hardware" tabindex="0"><HardwareStyle /></section>
+      <section class="style-panel" id="panel-midnight" role="tabpanel" aria-labelledby="tab-midnight" data-style-panel="midnight" tabindex="0" hidden><MidnightStyle /></section>
+      <section class="style-panel" id="panel-world" role="tabpanel" aria-labelledby="tab-world" data-style-panel="world" tabindex="0" hidden><WorldStyle /></section>
+    </main>
+    <footer class="style-footer"><span>Three directions for Smash.NES.</span><a href="/play/">Play the current game ↗</a></footer>
+    <script>
+      const tabs = [...document.querySelectorAll<HTMLButtonElement>('[data-style-tab]')];
+      const panels = [...document.querySelectorAll<HTMLElement>('[data-style-panel]')];
+      const captions = [...document.querySelectorAll<HTMLElement>('[data-style-caption]')];
+      const toggle = document.querySelector<HTMLButtonElement>('[data-style-motion-toggle]')!;
+      function selectDirection(id: string, updateUrl = true) {
+        const selected = tabs.find(tab => tab.dataset.styleTab === id) ?? tabs[0];
+        const direction = selected.dataset.styleTab!;
+        document.documentElement.dataset.styleDirection = direction;
+        tabs.forEach(tab => { const active = tab === selected; tab.setAttribute('aria-selected', String(active)); tab.tabIndex = active ? 0 : -1; });
+        panels.forEach(panel => { panel.hidden = panel.dataset.stylePanel !== direction; });
+        captions.forEach(caption => { caption.hidden = caption.dataset.styleCaption !== direction; });
+        if (updateUrl) { const url = new URL(location.href); url.searchParams.set('style', direction); history.replaceState(history.state, '', url); }
+      }
+      function syncMotion() {
+        const enabled = document.documentElement.dataset.styleMotion !== 'off';
+        toggle.setAttribute('aria-pressed',String(enabled));
+        toggle.querySelector('[data-motion-label]')!.textContent = enabled ? 'on' : 'off';
+      }
+      const restore = () => selectDirection(new URLSearchParams(location.search).get('style') ?? 'hardware', false);
+      tabs.forEach((tab,index) => {
+        tab.addEventListener('click',() => selectDirection(tab.dataset.styleTab!));
+        tab.addEventListener('keydown',event => {
+          if (!['ArrowRight','ArrowLeft','Home','End'].includes(event.key)) return;
+          event.preventDefault();
+          const next = event.key === 'Home' ? 0 : event.key === 'End' ? tabs.length - 1 : (index + (event.key === 'ArrowRight' ? 1 : -1) + tabs.length) % tabs.length;
+          tabs[next].focus(); selectDirection(tabs[next].dataset.styleTab!);
+        });
+      });
+      toggle.addEventListener('click',() => {
+        const next = document.documentElement.dataset.styleMotion === 'off' ? 'on' : 'off';
+        document.documentElement.dataset.styleMotion = next;
+        try { localStorage.setItem('smash-style-motion',next); } catch {}
+        syncMotion();
+      });
+      window.addEventListener('popstate',restore);
+      window.addEventListener('storage',event => {
+        if (event.key !== 'smash-style-motion') return;
+        document.documentElement.dataset.styleMotion = event.newValue === 'off' ? 'off' : 'on'; syncMotion();
+      });
+      restore(); syncMotion();
+    </script>
+  </body>
+</html>
+<style is:global>
+  html { color-scheme:dark; background:#16171c; color:#eeeff5; font-family:Arial,sans-serif; }
+  body { margin:0; }
+  * { box-sizing:border-box; }
+  button { font:inherit; cursor:pointer; }
+  a { color:inherit; }
+  [hidden] { display:none !important; }
+  .style-skip { position:absolute; top:8px; left:8px; z-index:100; transform:translateY(-200%); padding:12px; color:#111; background:#fff; }
+  .style-skip:focus { transform:none; }
+  .style-toolbar { display:flex; align-items:center; justify-content:space-between; gap:28px; padding:18px 28px; }
+  .style-toolbar h1 { margin:0; font:700 17px/1.2 Arial,sans-serif; letter-spacing:-.02em; }
+  .style-tabs { display:flex; gap:4px; padding:4px; border:1px solid #444650; border-radius:7px; }
+  .style-tabs button { border:0; border-radius:4px; padding:11px 25px; color:#b8bbc9; background:transparent; font:700 12px/1.3 Arial,sans-serif; }
+  .style-tabs button[aria-selected=true] { color:#16171c; background:#eeeff5; }
+  .style-tabs button:hover:not([aria-selected=true]) { background:#30323b; color:#fff; }
+  .motion-toggle { display:flex; align-items:center; gap:6px; border:0; background:none; color:#c0c2cf; padding:10px 0; font:400 11px/1.3 Arial,sans-serif; }
+  .motion-toggle i { display:inline-block; height:5px; width:5px; border-radius:50%; background:#a8ddb7; margin-right:4px; }
+  .motion-toggle[aria-pressed=false] i { background:#676b7b; }
+  .style-toolbar :focus-visible,.style-caption a:focus-visible,.style-footer a:focus-visible { outline:2px solid #e9c98d; outline-offset:4px; }
+  #style-preview { max-width:1500px; margin:auto; padding:0 24px; }
+  .style-caption { display:flex; justify-content:space-between; align-items:center; gap:20px; min-height:48px; padding:0 4px 14px; color:#a2a6b6; font:400 12px/1.5 Arial,sans-serif; }
+  .style-caption p { margin:0; }
+  .style-caption a { flex:none; text-decoration:none; font-size:11px; color:#c7cad5; }
+  .style-panel { overflow:hidden; border-radius:8px; }
+  .style-panel:focus-visible { outline:2px solid #e9c98d; outline-offset:4px; }
+  .style-footer { display:flex; justify-content:space-between; gap:24px; max-width:1500px; margin:auto; padding:24px 28px; color:#989dac; font:400 11px/1.5 Arial,sans-serif; }
+  .style-footer a { text-decoration:none; }
+  @media(max-width:700px) {
+    .style-toolbar { flex-wrap:wrap; gap:16px; padding:20px 16px 14px; }
+    .style-toolbar h1 { flex:1; }
+    .style-tabs { order:3; width:100%; }
+    .style-tabs button { flex:1; padding-inline:10px; }
+    #style-preview { padding:0 10px; }
+    .style-caption { align-items:flex-start; flex-direction:column; gap:8px; padding:4px 6px 16px; }
+    .style-caption p { min-height:36px; }
+    .style-footer { padding-inline:16px; }
+  }
+</style>
